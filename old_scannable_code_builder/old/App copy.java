@@ -15,9 +15,10 @@ public class App extends Application {
 
     private static Scene scene;
 
+
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("primary"), 640, 480);
+        scene = new Scene(loadFXML("GUI_Builder"), 640, 480);
         stage.setMinHeight(500);
         stage.setMinWidth(600);
         stage.setTitle("Scannable Code Generator");
@@ -25,6 +26,9 @@ public class App extends Application {
         stage.show();
     }
 
+
+     
+    
     static void setRoot(String fxml) throws IOException {
         scene.setRoot(loadFXML(fxml));
     }
@@ -36,6 +40,7 @@ public class App extends Application {
 
     public static void main(String[] args) {
         launch();
+        
     }
-
+    
 }

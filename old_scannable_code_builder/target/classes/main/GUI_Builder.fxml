@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="475.0" minWidth="600.0" prefHeight="475.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.GUI_Builder">
+   <children>
+      <SplitPane dividerPositions="0.4" layoutY="55.333333333333336" prefHeight="445.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="55.0">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" SplitPane.resizableWithParent="false">
+               <children>
+                  <Text layoutX="13.0" layoutY="21.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Type:">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Text>
+                  <Text layoutX="14.0" layoutY="51.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Color:">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Text>
+                  <ChoiceBox id="output_choice" layoutX="72.0" layoutY="4.0" prefWidth="150.0"/>
+                  <ColorPicker id="outer_color" layoutX="125.0" layoutY="41.0" prefHeight="27.0" prefWidth="44.0" />
+                  <ColorPicker id="inner_color" layoutX="72.0" layoutY="41.0" prefHeight="27.0" prefWidth="44.0">
+                     <value>
+                        <Color />
+                     </value>
+                  </ColorPicker>
+                  <AnchorPane layoutY="76.0" prefHeight="366.0" prefWidth="236.0" AnchorPane.bottomAnchor="-24.666666666666686" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="76.0">
+                     <children>
+                        <Text layoutX="14.0" layoutY="32.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Error Correction: ">
+                           <font>
+                              <Font size="14.0" />
+                           </font>
+                        </Text>
+                        <Text layoutX="16.0" layoutY="65.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Logo:">
+                           <font>
+                              <Font size="14.0" />
+                           </font>
+                        </Text>
+                        <Button id="add_logo" layoutX="118.0" layoutY="47.0" mnemonicParsing="false" prefHeight="27.0" prefWidth="105.0" text="Upload Image" />
+                        <Separator layoutX="41.0" layoutY="2.0" prefWidth="200.0" />
+                        <ChoiceBox id="correction_choice" layoutX="118.0" layoutY="13.0" prefHeight="27.0" prefWidth="105.0" />
+                        <Text layoutX="17.0" layoutY="100.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Size:">
+                           <font>
+                              <Font size="14.0" />
+                           </font>
+                        </Text>
+                        <Slider id="logo_size" layoutX="53.0" layoutY="87.0" prefHeight="15.0" prefWidth="176.0" />
+                        <BorderPane layoutX="18.0" layoutY="123.0" prefHeight="200.0" prefWidth="200.0" style="-fx-border-color: black;" AnchorPane.leftAnchor="18.0" AnchorPane.rightAnchor="23.333333333333343" AnchorPane.topAnchor="123.0">
+                           <center>
+                              <ImageView id="logo_image" fitHeight="190.0" fitWidth="190.0" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="CENTER" />
+                           </center>
+                        </BorderPane>
+                     </children>
+                  </AnchorPane>
+               </children>
+            </AnchorPane>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="370.0" prefWidth="309.0" SplitPane.resizableWithParent="false">
+               <children>
+                  <Button id="download_butt" layoutX="57.0" layoutY="357.0" mnemonicParsing="false" text="Download" AnchorPane.bottomAnchor="57.66666666666667" AnchorPane.leftAnchor="56.66666666666667" />
+                  <Button id="upload_button" layoutX="226.0" layoutY="357.0" mnemonicParsing="false" text="Upload" AnchorPane.bottomAnchor="57.66666666666667" AnchorPane.rightAnchor="70.66666666666669" />
+                  <Text fill="#575757" layoutX="33.0" layoutY="398.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Download Completed" AnchorPane.bottomAnchor="39.0" />
+                  <BorderPane layoutX="14.0" layoutY="14.0" prefHeight="325.0" prefWidth="325.0" style="-fx-border-color: black;" AnchorPane.bottomAnchor="102.66666666666669" AnchorPane.leftAnchor="14.000000000000057" AnchorPane.rightAnchor="15.333333333333371" AnchorPane.topAnchor="14.0">
+                     <center>
+                        <ImageView id="output_image" fitHeight="315.0" fitWidth="315.0" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="CENTER" />
+                     </center>
+                  </BorderPane>
+               </children>
+            </AnchorPane>
+        </items>
+      </SplitPane>
+      <TextArea id="generate_text" layoutX="91.0" layoutY="5.0" prefHeight="45.0" prefWidth="507.0" AnchorPane.leftAnchor="91.0" AnchorPane.rightAnchor="2.3333333333332575" />
+      <Text layoutX="14.0" layoutY="34.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Enter Text:" wrappingWidth="67.81150436401367" AnchorPane.bottomAnchor="462.486328125" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="518.1884956359863" AnchorPane.topAnchor="18.892578125">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Text>
+      <TitledPane animated="false" layoutX="143.0" layoutY="-99.0" text="untitled" />
+   </children>
+</AnchorPane>
