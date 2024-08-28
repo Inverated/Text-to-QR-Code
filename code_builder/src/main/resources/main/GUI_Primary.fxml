@@ -4,6 +4,7 @@
 <?import javafx.scene.control.ColorPicker?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.SplitPane?>
@@ -11,13 +12,14 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.paint.Color?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="475.0" minWidth="600.0" prefHeight="475.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.GUI_Builder">
    <children>
-      <SplitPane dividerPositions="0.4" layoutY="55.333333333333336" prefHeight="445.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="55.0">
+      <SplitPane dividerPositions="0.4" layoutY="55.5" prefHeight="445.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="55.0">
         <items>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" SplitPane.resizableWithParent="false">
                <children>
@@ -59,9 +61,13 @@
                            </font>
                         </Text>
                         <Slider id="logo_size" fx:id="logo_size" layoutX="53.0" layoutY="87.0" prefHeight="15.0" prefWidth="176.0" />
-                        <BorderPane layoutX="18.0" layoutY="123.0" prefHeight="200.0" prefWidth="200.0" style="-fx-border-color: black;" AnchorPane.leftAnchor="18.0" AnchorPane.rightAnchor="23.333333333333343" AnchorPane.topAnchor="123.0">
+                        <BorderPane fx:id="logo_pane" layoutX="18.0" layoutY="123.0" prefHeight="200.0" prefWidth="200.0" style="-fx-border-color: black;" AnchorPane.leftAnchor="18.0" AnchorPane.rightAnchor="23.5" AnchorPane.topAnchor="123.0">
                            <center>
-                              <ImageView id="logo_image" fx:id="logo_image" fitHeight="190.0" fitWidth="190.0" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="CENTER" />
+                              <ScrollPane hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" vbarPolicy="NEVER" BorderPane.alignment="CENTER">
+                                 <content>
+                                    <ImageView id="logo_image" fx:id="logo_image" fitHeight="200.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
+                                 </content>
+                              </ScrollPane>
                            </center>
                         </BorderPane>
                      </children>
@@ -71,20 +77,21 @@
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="370.0" prefWidth="309.0" SplitPane.resizableWithParent="false">
                <children>
                   <Button id="download_butt" fx:id="downloadButton" layoutX="57.0" layoutY="359.0" mnemonicParsing="false" onAction="#download_press" text="Download" AnchorPane.bottomAnchor="31.0" AnchorPane.leftAnchor="57.0" />
-                  <Button id="upload_button" fx:id="uploadButton" layoutX="226.0" layoutY="359.0" mnemonicParsing="false" onAction="#upload_press" text="Upload" AnchorPane.bottomAnchor="31.0" AnchorPane.rightAnchor="70.66666666666669" />
-                  <Label id="completion_status" fx:id="download_status" layoutX="35.0" layoutY="390.0" text="Doenload Completed" />
-                  <BorderPane layoutX="14.0" layoutY="41.0" prefHeight="325.0" prefWidth="325.0" style="-fx-border-color: black;" AnchorPane.bottomAnchor="75.66666666666669" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="15.333333333333314" AnchorPane.topAnchor="41.0">
-                     <center>
-                        <ImageView id="output_image" fx:id="output_image" fitHeight="315.0" fitWidth="315.0" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="CENTER" />
-                     </center>
-                  </BorderPane>
-                  <Button id="generate_button" fx:id="generate_button" layoutX="77.0" layoutY="4.0" mnemonicParsing="false" onAction="#onGeneratePush" prefHeight="27.0" prefWidth="200.0" text="Generate" />
+                  <Button id="upload_button" fx:id="uploadButton" layoutX="226.0" layoutY="359.0" mnemonicParsing="false" onAction="#upload_press" text="Upload" AnchorPane.bottomAnchor="31.0" AnchorPane.rightAnchor="70.7" />
+                  <Label id="completion_status" fx:id="download_status" layoutX="35.0" layoutY="390.0" text="Download Completed" AnchorPane.bottomAnchor="7.999999999999982" AnchorPane.leftAnchor="35.0" />
+                  <StackPane layoutX="27.0" layoutY="41.0" prefHeight="300.0" prefWidth="300.0" AnchorPane.bottomAnchor="76.33333333333331" AnchorPane.leftAnchor="26.666666666666686" AnchorPane.rightAnchor="27.666666666666686" AnchorPane.topAnchor="41.333333333333314">
+                     <children>
+                        <ImageView id="output_image" fx:id="output_image" fitHeight="300.0" fitWidth="300.0" nodeOrientation="INHERIT" pickOnBounds="true" preserveRatio="true" />
+                     </children>
+                  </StackPane>
+                  <Button id="generate_button" fx:id="generate_button" layoutX="77.0" layoutY="4.0" mnemonicParsing="false" onAction="#onGeneratePush" prefHeight="27.0" prefWidth="200.0" text="Generate" AnchorPane.leftAnchor="76.0" AnchorPane.rightAnchor="76.0" />
+                  <StackPane fx:id="output_pane" layoutX="27.0" layoutY="41.0" prefHeight="300.0" prefWidth="300.0" style="-fx-border-color: black;" AnchorPane.bottomAnchor="76.0" AnchorPane.leftAnchor="26.666666666666686" AnchorPane.rightAnchor="27.666666666666686" AnchorPane.topAnchor="41.0" />
                </children>
             </AnchorPane>
         </items>
       </SplitPane>
-      <TextArea id="generatetext" fx:id="generatetext" layoutX="91.0" layoutY="5.0" prefHeight="45.0" prefWidth="507.0" AnchorPane.leftAnchor="91.0" AnchorPane.rightAnchor="2.3333333333332575" />
-      <Text layoutX="14.0" layoutY="34.44075520833333" strokeType="OUTSIDE" strokeWidth="0.0" text="Enter Text:" wrappingWidth="67.81150436401367" AnchorPane.bottomAnchor="438.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="528.0" AnchorPane.topAnchor="18.892578125">
+      <TextArea id="generatetext" fx:id="generatetext" layoutX="91.0" layoutY="5.0" prefHeight="45.0" prefWidth="507.0" AnchorPane.leftAnchor="91.0" AnchorPane.rightAnchor="2.5" />
+      <Text layoutX="14.0" layoutY="34.5" strokeType="OUTSIDE" strokeWidth="0.0" text="Enter Text:" wrappingWidth="67.8" AnchorPane.bottomAnchor="438.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="528.0" AnchorPane.topAnchor="18.9">
          <font>
             <Font size="14.0" />
          </font>

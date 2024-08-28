@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.io.File;
 
 /**
  * JavaFX App
@@ -17,9 +18,14 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("Gui_Primary"), 640, 480);
+        File[] folder = new File("src/main/resources/temp_img/").listFiles();
+        for (File file : folder) {
+            file.delete();
+        }
+
+        scene = new Scene(loadFXML("Gui_Primary"), 650, 500);
         stage.setMinHeight(500);
-        stage.setMinWidth(600);
+        stage.setMinWidth(650);
         stage.setTitle("Scannable Code Generator");
         stage.setScene(scene);
         stage.show();
