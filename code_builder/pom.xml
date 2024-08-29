@@ -35,6 +35,19 @@
             <artifactId>javafx-fxml</artifactId>
             <version>24-ea+5</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.openjfx/javafx-swing -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-swing</artifactId>
+            <version>24-ea+5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>24-ea+5</version>
+        </dependency>
+
     </dependencies>
     <build>
         <plugins>

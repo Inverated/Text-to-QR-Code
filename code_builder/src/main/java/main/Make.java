@@ -44,11 +44,11 @@ public class Make {
         int inner, int outer) 
     {
         BufferedImage colored = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_INDEXED);
+        if (inner == -16777216 && outer == -1) {return MatrixToImageWriter.toBufferedImage(matrix);}
         // Apply colors 
         for (int y = 0; y < matrix.getHeight(); y++) {
             for (int x = 0; x < matrix.getWidth(); x++) {
                 boolean pixel = matrix.get(x, y);
-                
                 if (pixel == true) {
                     colored.setRGB(x, y, inner);
                 } else {
@@ -60,7 +60,7 @@ public class Make {
     }
 
     // Function to create the QR code
-    public static void create(String data, String path,
+    public static BufferedImage create(String data, String path,
                                 String charset, int error_lvl,
                                 String output_type, int inner, int outer)
         throws WriterException, IOException
@@ -83,17 +83,17 @@ public class Make {
             new String(data.getBytes(charset), charset),
             output_format, width, height, hashMap);
         
-        BufferedImage image = MatrixToImageWriter.toBufferedImage(matrix);
-        if (output_type == "Qr Code") {
-            image = color_qr(width,height, matrix, inner, outer);
-        }
+        
+        BufferedImage  image = color_qr(width,height, matrix, inner, outer);
         
         File file = new File(path);
         ImageIO.write(image,"PNG",file);
+
+        return image;
         }
   
     // Driver code
-    public static String create_temp(String data, int error_lvl, String output_type, int inner, int outer)
+    public static BufferedImage create_temp(String data, int error_lvl, String output_type, int inner, int outer)
         throws WriterException, IOException,
                NotFoundException
     {   
@@ -108,9 +108,9 @@ public class Make {
         // Create the QR code and save
         // in the specified folder
         // as a jpg file
-        create(data, path, charset, error_lvl,  output_type, inner, outer);
+        BufferedImage image = create(data, path, charset, error_lvl,  output_type, inner, outer);
         //System.out.println("QR Code Generated!!! ");
-        return file_name;
+        return image;
     }
 
     public static void main(String[] args) {

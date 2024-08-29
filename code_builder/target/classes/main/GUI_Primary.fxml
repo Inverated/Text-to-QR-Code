@@ -17,7 +17,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="475.0" minWidth="600.0" prefHeight="475.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.GUI_Builder">
+<AnchorPane fx:id="main_pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="480.0" minWidth="600.0" prefHeight="480.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.GUI_Builder">
    <children>
       <SplitPane dividerPositions="0.4" layoutY="55.5" prefHeight="445.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="55.0">
         <items>
@@ -76,9 +76,8 @@
             </AnchorPane>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="370.0" prefWidth="309.0" SplitPane.resizableWithParent="false">
                <children>
-                  <Button id="download_butt" fx:id="downloadButton" layoutX="57.0" layoutY="359.0" mnemonicParsing="false" onAction="#download_press" text="Download" AnchorPane.bottomAnchor="31.0" AnchorPane.leftAnchor="57.0" />
-                  <Button id="upload_button" fx:id="uploadButton" layoutX="226.0" layoutY="359.0" mnemonicParsing="false" onAction="#upload_press" text="Upload" AnchorPane.bottomAnchor="31.0" AnchorPane.rightAnchor="70.7" />
-                  <Label id="completion_status" fx:id="download_status" layoutX="35.0" layoutY="390.0" text="Download Completed" AnchorPane.bottomAnchor="7.999999999999982" AnchorPane.leftAnchor="35.0" />
+                  <Button id="download_butt" fx:id="downloadButton" layoutX="57.333333333333336" layoutY="369.6666666666667" mnemonicParsing="false" onAction="#download_press" text="Download" AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="57.333333333333336" />
+                  <Button id="upload_button" fx:id="uploadButton" layoutX="226.0" layoutY="369.6666666666667" mnemonicParsing="false" onAction="#upload_press" text="Upload" AnchorPane.bottomAnchor="25.0" AnchorPane.rightAnchor="70.66666666666669" />
                   <StackPane layoutX="27.0" layoutY="41.0" prefHeight="300.0" prefWidth="300.0" AnchorPane.bottomAnchor="76.33333333333331" AnchorPane.leftAnchor="26.666666666666686" AnchorPane.rightAnchor="27.666666666666686" AnchorPane.topAnchor="41.333333333333314">
                      <children>
                         <ImageView id="output_image" fx:id="output_image" fitHeight="300.0" fitWidth="300.0" nodeOrientation="INHERIT" pickOnBounds="true" preserveRatio="true" />
@@ -86,6 +85,10 @@
                   </StackPane>
                   <Button id="generate_button" fx:id="generate_button" layoutX="77.0" layoutY="4.0" mnemonicParsing="false" onAction="#onGeneratePush" prefHeight="27.0" prefWidth="200.0" text="Generate" AnchorPane.leftAnchor="76.0" AnchorPane.rightAnchor="76.0" />
                   <StackPane fx:id="output_pane" layoutX="27.0" layoutY="41.0" prefHeight="300.0" prefWidth="300.0" style="-fx-border-color: black;" AnchorPane.bottomAnchor="76.0" AnchorPane.leftAnchor="26.666666666666686" AnchorPane.rightAnchor="27.666666666666686" AnchorPane.topAnchor="41.0" />
+                  <Label id="completion_status" fx:id="download_status" layoutX="35.333333333333336" layoutY="398.33333333333337" text="Download Completed" visible="false" AnchorPane.bottomAnchor="4.333333333333314" AnchorPane.leftAnchor="35.333333333333336" />
+                  <Label fx:id="bad_image" alignment="CENTER" contentDisplay="CENTER" layoutX="27.0" layoutY="346.0" prefHeight="19.0" prefWidth="300.0" text="Image selected does not have a readable code" visible="false" AnchorPane.bottomAnchor="56.66666666666667" AnchorPane.leftAnchor="26.666666666666668" AnchorPane.rightAnchor="28.0" />
+                  <Label fx:id="download_finish" alignment="CENTER" contentDisplay="CENTER" layoutX="27.0" layoutY="346.0" prefHeight="19.0" prefWidth="300.0" text="Image saved at " visible="false" AnchorPane.bottomAnchor="56.66666666666667" AnchorPane.leftAnchor="26.666666666666668" AnchorPane.rightAnchor="28.0" />
+                  <Label fx:id="no_image" alignment="CENTER" contentDisplay="CENTER" layoutX="27.0" layoutY="346.0" prefHeight="19.0" prefWidth="300.0" text="Please generate an image before downloading" visible="false" AnchorPane.bottomAnchor="56.66666666666667" AnchorPane.leftAnchor="26.666666666666668" AnchorPane.rightAnchor="28.0" />
                </children>
             </AnchorPane>
         </items>
