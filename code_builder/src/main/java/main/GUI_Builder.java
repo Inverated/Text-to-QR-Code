@@ -8,28 +8,33 @@ Fuck
 package main;
 
 
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
 
 import com.google.zxing.BinaryBitmap;
-import com.google.zxing.ChecksumException;
-import com.google.zxing.FormatException;
-import com.google.zxing.LuminanceSource;
+import com.google.zxing.DecodeHintType;
+import com.google.zxing.EncodeHintType;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.RGBLuminanceSource;
-import com.google.zxing.Reader;
 import com.google.zxing.Result;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.DecoderResult;
 import com.google.zxing.common.HybridBinarizer;
-import com.google.zxing.qrcode.QRCodeReader;
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
-import javafx.embed.swing.SwingFXUtils;
 import javafx.animation.PauseTransition;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -49,8 +54,6 @@ import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.util.Duration;
-import javax.imageio.ImageIO;
-
 
 public class GUI_Builder implements Initializable {
     @FXML private AnchorPane main_pane; 
@@ -110,6 +113,7 @@ public class GUI_Builder implements Initializable {
         String user_input = generatetext.getText();
         String output_type = output_choice.getValue();
         download_finish.setVisible(false);
+        bad_image.setVisible(false);
 
         if (user_input.isBlank()) {return;}
         
@@ -159,31 +163,73 @@ public class GUI_Builder implements Initializable {
         FileChooser filechooser = new FileChooser();
         filechooser.setTitle("Save Image");
         filechooser.getExtensionFilters().add(new ExtensionFilter("Image", "*.png", "*.jpeg","*.jpg"));
-        File filetosave;
-        if (type == 1){
-            filetosave = filechooser.showSaveDialog(null);}
-        else {
-            filetosave = filechooser.showOpenDialog(null);}
+        File filetosave = (type == 1) ? filechooser.showSaveDialog(null) : filechooser.showOpenDialog(null);
+
         return filetosave;
 
     }
+
+    public static BufferedImage applyThreshold(BufferedImage image, int threshold) {
+        BufferedImage thresholdedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_BINARY);
+        
+        for (int y = 0; y < image.getHeight(); y++) {
+            for (int x = 0; x < image.getWidth(); x++) {
+                int rgb = image.getRGB(x, y);
+                int red = (rgb >> 16) & 0xFF;
+                int green = (rgb >> 8) & 0xFF;
+                int blue = rgb & 0xFF;
+                int gray = (red + green + blue) / 3; // Convert to grayscale
+                
+                // Apply the threshold
+                int binaryColor = gray > threshold ? 0xFFFFFF : 0x000000;
+                
+                thresholdedImage.setRGB(x, y, binaryColor);
+            }
+        }
+        
+        return thresholdedImage;
+    }
+    
+    
     @FXML
     private void upload_press(ActionEvent event) throws IOException {
+        bad_image.setVisible(false);
         File file = choose_file(2);
         if (file == null) {return;}  
         System.out.println(file.getAbsolutePath());
-        BufferedImage image = ImageIO.read(file);
-        display_generated(image);
-        BufferedImageLuminanceSource source = new BufferedImageLuminanceSource(image);
-        BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-        try {
-            Result result = new MultiFormatReader().decode(bitmap);
-            System.out.println(result.getText());
-        } catch (NotFoundException e) {
-            e.printStackTrace();
-        }
+
+        Map<DecodeHintType, Boolean> hintMap = new HashMap<>();
+    hintMap.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
+        BufferedImage coloredImage = ImageIO.read(new FileInputStream(file));
+        display_generated(coloredImage);
+        BufferedImage bufferedImage = new BufferedImage(coloredImage.getWidth(), coloredImage.getHeight(), coloredImage.TYPE_BYTE_GRAY);
+        Graphics2D g2d = bufferedImage.createGraphics();
+        g2d.drawImage(coloredImage, 0, 0, null);
+        g2d.dispose();
+
+        Result qrCodeResult = null;
+
+        for (int i = 255; i > 0; i-=10) {
+            BufferedImage adjusted = applyThreshold(bufferedImage, i);
+                    
+            BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(
+                new BufferedImageLuminanceSource(
+                    adjusted)));
         
-    }
+            try {
+                qrCodeResult = new MultiFormatReader().decode(binaryBitmap, hintMap);
+            } catch (NotFoundException e) {
+                System.out.println(i);
+                continue;
+            }
+            String textresult = qrCodeResult.getText();
+            generatetext.setText(textresult);
+            System.out.println(textresult);
+            display_generated(adjusted);
+        }
+            if (qrCodeResult == null){bad_image.setVisible(true);}
+        }
+               
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
