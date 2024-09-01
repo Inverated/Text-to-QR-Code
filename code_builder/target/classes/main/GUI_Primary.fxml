@@ -4,14 +4,12 @@
 <?import javafx.scene.control.ColorPicker?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.paint.Color?>
 <?import javafx.scene.text.Font?>
@@ -21,7 +19,7 @@
    <children>
       <SplitPane dividerPositions="0.1" orientation="VERTICAL" prefHeight="480.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <items>
-          <AnchorPane minHeight="45.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+          <AnchorPane minHeight="45.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0" SplitPane.resizableWithParent="false">
                <children>
                   <TextArea id="generatetext" fx:id="generatetext" minHeight="45.0" prefHeight="45.0" prefWidth="507.0" wrapText="true" AnchorPane.bottomAnchor="-0.0" AnchorPane.leftAnchor="91.0" AnchorPane.rightAnchor="2.5" AnchorPane.topAnchor="0.0">
                      <font>
@@ -70,7 +68,7 @@
                                           <Font size="14.0" />
                                        </font>
                                     </Text>
-                                    <Button id="add_logo" fx:id="upload_logo" layoutX="118.0" layoutY="47.0" mnemonicParsing="false" prefHeight="27.0" prefWidth="105.0" text="Upload Image" />
+                                    <Button id="add_logo" fx:id="upload_logo" disable="true" layoutX="118.0" layoutY="47.0" mnemonicParsing="false" onAction="#upload_logo" prefHeight="27.0" prefWidth="105.0" text="Upload Logo" />
                                     <Separator layoutX="41.0" layoutY="2.0" prefWidth="200.0" />
                                     <ComboBox id="correction_choice" fx:id="correction_choice" layoutX="118.0" layoutY="12.0" prefHeight="27.0" prefWidth="105.0" />
                                     <Text layoutX="17.0" layoutY="100.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Size:">
@@ -78,16 +76,14 @@
                                           <Font size="14.0" />
                                        </font>
                                     </Text>
-                                    <Slider id="logo_size" fx:id="logo_size" layoutX="53.0" layoutY="87.0" prefHeight="15.0" prefWidth="176.0" />
-                                    <BorderPane fx:id="logo_pane" layoutX="18.0" layoutY="123.0" prefHeight="200.0" prefWidth="200.0" style="-fx-border-color: black;" AnchorPane.leftAnchor="18.0" AnchorPane.rightAnchor="23.5" AnchorPane.topAnchor="123.0">
-                                       <center>
-                                          <ScrollPane hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" vbarPolicy="NEVER" BorderPane.alignment="CENTER">
-                                             <content>
-                                                <ImageView id="logo_image" fx:id="logo_image" fitHeight="200.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
-                                             </content>
-                                          </ScrollPane>
-                                       </center>
-                                    </BorderPane>
+                                    <Slider id="logo_size" fx:id="logo_size" disable="true" layoutX="53.0" layoutY="87.0" prefHeight="15.0" prefWidth="176.0" value="100.0" />
+                                    <StackPane fx:id="logo_pane" layoutX="29.0" layoutY="120.0" prefHeight="180.0" prefWidth="180.0" AnchorPane.leftAnchor="28.666666666666686" AnchorPane.rightAnchor="32.33333333333334" AnchorPane.topAnchor="120.0">
+                                       <children>
+                                          <ImageView id="logo_image" fx:id="logo_image" fitHeight="180.0" fitWidth="180.0" layoutX="20.0" layoutY="120.0" pickOnBounds="true" preserveRatio="true" />
+                                       </children>
+                                    </StackPane>
+                                    <StackPane layoutX="29.0" layoutY="120.0" prefHeight="180.0" prefWidth="180.0" style="-fx-border-color: black;" AnchorPane.leftAnchor="28.666666666666686" AnchorPane.rightAnchor="32.33333333333334" AnchorPane.topAnchor="120.0" />
+                                    <Button id="download_butt" fx:id="remove_button" disable="true" layoutX="73.0" layoutY="305.0" mnemonicParsing="false" onAction="#remove_logo" text="Remove Logo" />
                                  </children>
                               </AnchorPane>
                            </children>
@@ -104,9 +100,8 @@
                               <Button id="generate_button" fx:id="generate_button" layoutX="77.0" layoutY="4.0" mnemonicParsing="false" onAction="#onGeneratePush" prefHeight="27.0" prefWidth="200.0" text="Generate" AnchorPane.leftAnchor="76.0" AnchorPane.rightAnchor="76.0" />
                               <StackPane fx:id="output_pane" layoutX="27.0" layoutY="41.0" prefHeight="300.0" prefWidth="300.0" style="-fx-border-color: black;" AnchorPane.bottomAnchor="76.0" AnchorPane.leftAnchor="26.666666666666686" AnchorPane.rightAnchor="27.666666666666686" AnchorPane.topAnchor="41.0" />
                               <Label id="completion_status" fx:id="download_status" layoutX="35.333333333333336" layoutY="398.33333333333337" text="Download Completed" visible="false" AnchorPane.bottomAnchor="4.333333333333314" AnchorPane.leftAnchor="35.333333333333336" />
-                              <Label fx:id="bad_image" alignment="CENTER" contentDisplay="CENTER" layoutX="27.0" layoutY="346.0" prefHeight="19.0" prefWidth="300.0" text="Image selected does not have a readable code" visible="false" AnchorPane.bottomAnchor="56.66666666666667" AnchorPane.leftAnchor="26.666666666666668" AnchorPane.rightAnchor="28.0" />
-                              <Label fx:id="download_finish" alignment="CENTER" contentDisplay="CENTER" layoutX="27.0" layoutY="346.0" prefHeight="19.0" prefWidth="300.0" text="Image saved at " visible="false" AnchorPane.bottomAnchor="56.66666666666667" AnchorPane.leftAnchor="26.666666666666668" AnchorPane.rightAnchor="28.0" />
-                              <Label fx:id="no_image" alignment="CENTER" contentDisplay="CENTER" layoutX="27.0" layoutY="346.0" prefHeight="19.0" prefWidth="300.0" text="Please generate an image before downloading" visible="false" AnchorPane.bottomAnchor="56.66666666666667" AnchorPane.leftAnchor="26.666666666666668" AnchorPane.rightAnchor="28.0" />
+                              <Label fx:id="result_handler" alignment="CENTER" contentDisplay="CENTER" layoutX="27.0" layoutY="346.0" prefHeight="19.0" prefWidth="300.0" visible="false" AnchorPane.bottomAnchor="56.66666666666667" AnchorPane.leftAnchor="26.666666666666668" AnchorPane.rightAnchor="28.0" />
+                              <Label fx:id="bad_result" alignment="CENTER" contentDisplay="CENTER" layoutX="27.0" layoutY="346.0" prefHeight="19.0" prefWidth="300.0" textFill="RED" visible="false" AnchorPane.bottomAnchor="56.66666666666667" AnchorPane.leftAnchor="26.666666666666668" AnchorPane.rightAnchor="28.0" />
                            </children>
                         </AnchorPane>
                     </items>

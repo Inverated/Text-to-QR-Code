@@ -12,11 +12,11 @@ import javax.imageio.ImageIO;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.NotFoundException;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
+
 
 public class Make {
     public static Map<EncodeHintType, Object> qr_formatting(Map<EncodeHintType, Object> hashMap, int error_lvl) {
@@ -59,26 +59,38 @@ public class Make {
         return colored;
     }
 
+    private static Map<String,BarcodeFormat> dictionary = new HashMap<>();;
+    static {
+        dictionary.put("Qr Code", BarcodeFormat.QR_CODE);
+        dictionary.put("Code 39 (Standard Barcode)", BarcodeFormat.CODE_39);
+        dictionary.put("Code 93", BarcodeFormat.CODE_93);
+        dictionary.put("Code 128", BarcodeFormat.CODE_128);
+        dictionary.put("AZTEC", BarcodeFormat.AZTEC);
+        dictionary.put("CODABAR", BarcodeFormat.CODABAR);
+        dictionary.put("Data Matrix", BarcodeFormat.DATA_MATRIX);
+        dictionary.put("EAN 13", BarcodeFormat.EAN_13);
+        dictionary.put("EAN 8", BarcodeFormat.EAN_8);
+        dictionary.put("ITF", BarcodeFormat.ITF);
+        dictionary.put("MAXICODE", BarcodeFormat.MAXICODE);
+        dictionary.put("PDF 417", BarcodeFormat.PDF_417);
+    }
+    
     // Function to create the QR code
     public static BufferedImage create(String data, String path,
                                 String charset, int error_lvl,
                                 String output_type, int inner, int outer)
         throws WriterException, IOException
     {
-        int height = 200; int width = 200; 
+        int height = 500; int width = 500; 
 
         Map<EncodeHintType, Object> hashMap = new HashMap<>();
-        BarcodeFormat output_format = BarcodeFormat.QR_CODE;
-        
-        switch (output_type) {
-            case "Qr Code":
-                output_format = BarcodeFormat.QR_CODE;
-                hashMap = qr_formatting(hashMap, error_lvl);
-                break;
-            case "Barcode":
-                output_format = BarcodeFormat.CODE_39;
-                break;
-        }
+
+        BarcodeFormat output_format = dictionary.get(output_type);
+
+        if (output_format == BarcodeFormat.QR_CODE) {
+            hashMap = qr_formatting(hashMap, error_lvl);
+        } 
+
         BitMatrix matrix = new MultiFormatWriter().encode(
             new String(data.getBytes(charset), charset),
             output_format, width, height, hashMap);
@@ -94,8 +106,7 @@ public class Make {
   
     // Driver code
     public static BufferedImage create_temp(String data, int error_lvl, String output_type, int inner, int outer)
-        throws WriterException, IOException,
-               NotFoundException
+        throws WriterException, IOException             
     {   
         // The path where the image will get saved
         long time = System.currentTimeMillis();
