@@ -13,7 +13,7 @@ Compilled using maven.
 
 *You can insert and resize logo into qr code. The programme will scan the qr code to see if it is still scannable after the addition of logo*
 
-# Notes
+## Notes
 1. First time making GUI, java, VScode, javafx, maven... Basically first time for the whole thing. This project is basically meant to learn java.
 2. Decoding of codes is not good with Zxing library. Small issues can make it unreadable:
 - A bit far
@@ -22,7 +22,7 @@ Compilled using maven.
 3. Planned to use OpenCV to fix the scanning issue but tried forever to import OpenCV into maven. Nothing works...
 4. I want to go back to python
 
-# Future Plans (Very far in future. Need catch up in school work)
+## Future Plans (Very far in future. Need catch up in school work)
 1. Shortcut to generate unique codes for wifi passowords etc.
 2. Make an executable
 3. Get OpenCV to work
