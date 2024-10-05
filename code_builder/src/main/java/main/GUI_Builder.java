@@ -88,10 +88,11 @@ public class GUI_Builder implements Initializable {
     @FXML
     private void get_type(ActionEvent event) {
         String output_type = output_choice.getValue();
-        if (output_type == "Qr Code") 
-            {qr_option.setVisible(true);}
-        else 
-            {qr_option.setVisible(false);}
+        if (output_type == "Qr Code") {
+            qr_option.setVisible(true);
+        } else {
+            qr_option.setVisible(false);
+        }
     }
 
     private int convert_color(ColorPicker picker){
@@ -112,7 +113,7 @@ public class GUI_Builder implements Initializable {
         result_handler.setVisible(false);
         bad_result.setVisible(false);
 
-        if (user_input.isBlank()) {return;}
+        if (user_input.isBlank()) return;
         
         int inner = convert_color(inner_color);
         int outer = convert_color(outer_color);
@@ -165,7 +166,7 @@ public class GUI_Builder implements Initializable {
             return;
         }
         File filetosave = choose_file(1); 
-        if (filetosave == null) {return;}     
+        if (filetosave == null) return;    
         
         if (current_combined != null) {current_image = current_combined;}
         ImageIO.write(current_image,"PNG",filetosave);
@@ -241,7 +242,7 @@ public class GUI_Builder implements Initializable {
         remove_button.setDisable(false);
     }
 
-    public static BufferedImage applyThreshold(BufferedImage image, int threshold) {
+    private static BufferedImage applyThreshold(BufferedImage image, int threshold) {
         BufferedImage thresholdedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_BINARY);
         
         for (int y = 0; y < image.getHeight(); y++) {
@@ -263,7 +264,7 @@ public class GUI_Builder implements Initializable {
     
     private Result decode_code(BufferedImage coloredImage){
         Map<DecodeHintType, Boolean> hintMap = new HashMap<>();
-    hintMap.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
+        hintMap.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
         BufferedImage bufferedImage = new BufferedImage(coloredImage.getWidth(), coloredImage.getHeight(), 10);
         Graphics2D g2d = bufferedImage.createGraphics();
         g2d.drawImage(coloredImage, 0, 0, null);
@@ -294,24 +295,37 @@ public class GUI_Builder implements Initializable {
     private void upload_press(ActionEvent event) throws IOException {
         result_handler.setVisible(false);
         File file = choose_file(2);
-        if (file == null) {return;}  
+        if (file == null) return; 
 
         result_handler.setText("Looking or code...");
         result_handler.setVisible(true);
 
-        BufferedImage coloredImage = ImageIO.read(new FileInputStream(file));
-        Result qrCodeResult = decode_code(coloredImage);       
-        if (qrCodeResult == null) {
-            result_handler.setVisible(false);
-            bad_result.setText("Code cannot be detected. Please use another image.");
-            bad_result.setVisible(true);
-            return;
+        String[] temp = Read.decode_qr_code(file.getAbsolutePath());   
+        String decoded_string = temp[0];
+
+        if (decoded_string != null) {
+            BufferedImage coloredImage = ImageIO.read(new File(temp[1]));
+            display_generated(coloredImage, output_image);
+            result_handler.setText("Code found. Type: Qr Code");
+
+        } /* else {
+            BufferedImage coloredImage = ImageIO.read(file);
+            Result qrCodeResult = decode_code(coloredImage);
+
+            if (qrCodeResult == null) {
+                result_handler.setVisible(false);
+                bad_result.setText("Code cannot be detected. Please use another image.");
+                bad_result.setVisible(true);
+                return;
+            }
+            BarcodeFormat code_type = qrCodeResult.getBarcodeFormat();
+            decoded_string = qrCodeResult.getText();
+            result_handler.setText("Code found. Type: "+code_type);
         }
-        BarcodeFormat code_type = qrCodeResult.getBarcodeFormat();
+ */
         bad_result.setVisible(false);
-        result_handler.setText("Code found. Type: "+code_type);
         result_handler.setVisible(true);
-        String textresult = qrCodeResult.getText();
+        String textresult = decoded_string;
         generatetext.setText(textresult); 
     }
                
@@ -333,14 +347,14 @@ public class GUI_Builder implements Initializable {
         logo_image.fitWidthProperty().bind(logo_pane.widthProperty());
 
         logo_size.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if (current_logo == null) {return;}
+            if (current_logo == null) return;
             set_logo();
         });
 
         
 
         logo_size.setOnMouseReleased(event -> {
-            if (current_combined == null) {return;}
+            if (current_combined == null) return;
             Result qrCodeResult = decode_code(current_combined);
             if (qrCodeResult == null) {
                 result_handler.setVisible(false);

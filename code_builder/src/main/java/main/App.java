@@ -18,8 +18,14 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        File[] folder = new File("src/main/resources/temp_img/").listFiles();
+        String dir = System.getProperty("user.dir");
+        String[] temp = dir.split("\\\\");
+        if (temp[temp.length-1].equals("code_builder")) dir += "\\src\\main\\resources\\temp_img";
+        else dir += "\\code_builder\\src\\main\\resources\\temp_img";
+        
+        File[] folder = new File(dir).listFiles();
         for (File file : folder) {
+            //System.out.println(file.getName());
             file.delete();
         }
 
