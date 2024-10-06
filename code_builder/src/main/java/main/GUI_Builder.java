@@ -121,7 +121,7 @@ public class GUI_Builder implements Initializable {
 
         BufferedImage image;
         try {
-            image = Make.create_temp(user_input, error_lvl, output_type, inner, outer);
+            image = Write.create_temp(user_input, error_lvl, output_type, inner, outer);
         } catch (WriterException e) {
             result_handler.setVisible(false);
             bad_result.setVisible(true);
@@ -242,7 +242,7 @@ public class GUI_Builder implements Initializable {
         remove_button.setDisable(false);
     }
 
-    private static BufferedImage applyThreshold(BufferedImage image, int threshold) {
+    private  BufferedImage applyThreshold(BufferedImage image, int threshold) {
         BufferedImage thresholdedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_BINARY);
         
         for (int y = 0; y < image.getHeight(); y++) {
@@ -262,7 +262,7 @@ public class GUI_Builder implements Initializable {
         return thresholdedImage;
     }
     
-    private Result decode_code(BufferedImage coloredImage){
+    public Result decode_code(BufferedImage coloredImage){
         Map<DecodeHintType, Boolean> hintMap = new HashMap<>();
         hintMap.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
         BufferedImage bufferedImage = new BufferedImage(coloredImage.getWidth(), coloredImage.getHeight(), 10);
@@ -300,15 +300,15 @@ public class GUI_Builder implements Initializable {
         result_handler.setText("Looking or code...");
         result_handler.setVisible(true);
 
-        String[] temp = Read.decode_qr_code(file.getAbsolutePath());   
-        String decoded_string = temp[0];
+        String decoded_string = Read.decode_qr_code(file.getAbsolutePath());   
 
         if (decoded_string != null) {
-            BufferedImage coloredImage = ImageIO.read(new File(temp[1]));
+            BufferedImage coloredImage = ImageIO.read(file);
             display_generated(coloredImage, output_image);
             result_handler.setText("Code found. Type: Qr Code");
+            output_choice.setValue("Qr Code");
 
-        } /* else {
+        } else {
             BufferedImage coloredImage = ImageIO.read(file);
             Result qrCodeResult = decode_code(coloredImage);
 
@@ -321,8 +321,9 @@ public class GUI_Builder implements Initializable {
             BarcodeFormat code_type = qrCodeResult.getBarcodeFormat();
             decoded_string = qrCodeResult.getText();
             result_handler.setText("Code found. Type: "+code_type);
+            output_choice.setValue(dictionary.get(code_type));
         }
- */
+
         bad_result.setVisible(false);
         result_handler.setVisible(true);
         String textresult = decoded_string;
@@ -378,8 +379,8 @@ public class GUI_Builder implements Initializable {
         });
 
     }
-    private static Map<BarcodeFormat,String> dictionary = new HashMap<BarcodeFormat, String>();
-    static {
+    private  Map<BarcodeFormat,String> dictionary = new HashMap<BarcodeFormat, String>();
+     {
         dictionary.put(BarcodeFormat.QR_CODE, "Qr Code");
         dictionary.put(BarcodeFormat.CODE_39, "Code 39 (Standard Barcode)");
         dictionary.put(BarcodeFormat.CODE_93, "Code 93");

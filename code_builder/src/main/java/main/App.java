@@ -15,14 +15,11 @@ import java.io.File;
 public class App extends Application {
 
     private static Scene scene;
+    private final String[] split_dir = System.getProperty("user.dir").split("\\\\"); 
+    private final String dir = System.getProperty("user.dir") + (split_dir[split_dir.length-1].equals("code_builder") ? "\\src\\main\\resources\\temp_img" : "\\code_builder\\src\\main\\resources\\temp_img");
 
     @Override
-    public void start(Stage stage) throws IOException {
-        String dir = System.getProperty("user.dir");
-        String[] temp = dir.split("\\\\");
-        if (temp[temp.length-1].equals("code_builder")) dir += "\\src\\main\\resources\\temp_img";
-        else dir += "\\code_builder\\src\\main\\resources\\temp_img";
-        
+    public void start(Stage stage) throws IOException {        
         File[] folder = new File(dir).listFiles();
         for (File file : folder) {
             //System.out.println(file.getName());
