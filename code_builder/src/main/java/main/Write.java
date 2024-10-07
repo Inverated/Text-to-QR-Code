@@ -123,7 +123,6 @@ public class Write {
 
         // Create the QR code and save in temp folder as a jpg file
         BufferedImage image = create(data, path, charset, error_lvl,  output_type, inner, outer);
-        //System.out.println("QR Code Generated!!! ");
         return image;
     }
 }

@@ -40,26 +40,38 @@ public class Read {
 
     public static String decode_qr_code(String path) {
         Mat image = Imgcodecs.imread(path);
+        Mat annotated = image.clone();
 
         Mat gray = new Mat();
         Imgproc.cvtColor(image, gray, Imgproc.COLOR_BGR2GRAY);
+        Imgcodecs.imwrite(temp_dir+"/gray.png", gray);
 
-        //Imgproc.GaussianBlur(gray, gray, new Size(3, 3), 1);
-        
-        Mat edges = new Mat();
-        Imgproc.Canny(gray, edges, 200, 400);
-
-        List<MatOfPoint> contours = new ArrayList<>();
-        Mat hierarchy = new Mat();
-        Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+        Mat blackAndWhiteImage = new Mat();
+        Imgproc.threshold(gray, blackAndWhiteImage, 100, 255, Imgproc.THRESH_BINARY);
+        Imgcodecs.imwrite(temp_dir+"/black and wite.png", blackAndWhiteImage);
 
         String output = decode(gray);
         if (output != null) {
             return output;
         }
 
-        ArrayList<Point> points = new ArrayList<>();
+        Mat filteredImage = new Mat();
+        // Apply Bilateral Filter
+        int diameter = 50;  // Diameter of pixel neighborhood
+        double sigmaColor = 80;  // Filter sigma in the color space (higher value = more blur)
+        double sigmaSpace = 200;  // Filter sigma in the coordinate space (higher value = more blur)
+        Imgproc.bilateralFilter(blackAndWhiteImage, filteredImage, diameter, sigmaColor, sigmaSpace);
+        Imgcodecs.imwrite(temp_dir+"/bilateral blurred.png", filteredImage);
 
+        Mat edges = new Mat();
+        Imgproc.Canny(blackAndWhiteImage, edges, 100, 200);
+        Imgcodecs.imwrite(temp_dir+"/edges.png", edges);
+
+        List<MatOfPoint> contours = new ArrayList<>();
+        Mat hierarchy = new Mat();
+        Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+
+        ArrayList<Point> points = new ArrayList<>();
 
         // Approximate contours to polygons and get the bounding rectangles
         for (MatOfPoint contour : contours) {
@@ -78,13 +90,14 @@ public class Read {
                
                 //Exxclude looong rectangles
                 double widthratio = Math.abs(points.get(0).x-points.get(1).x)/(Math.abs(points.get(1).x-points.get(2).x));
-                if (widthratio > 5 | widthratio < 0.2) {
+                if (widthratio > 4 | widthratio < 0.25) {
                     continue;
                 }
                 double heightratio = Math.abs(points.get(0).y-points.get(1).y)/(Math.abs(points.get(1).y-points.get(2).y));
-                if (heightratio > 5 | heightratio < 0.2) {
+                if (heightratio > 4 | heightratio < 0.25) {
                     continue;
                 }
+
                 //Exclude very small boxes 
                 if (    Math.abs(points.get(0).x-points.get(1).x) + (Math.abs(points.get(2).x-points.get(3).x)) < 3 |
                         Math.abs(points.get(0).y-points.get(1).y) + (Math.abs(points.get(2).y-points.get(3).y)) < 3) {
@@ -104,16 +117,19 @@ public class Read {
                 }
                 if (exit) continue;
 
-                //draw(points, image, new Scalar(0,255,0));
-
-                //Imgproc.putText(image, points.get(0).x+" "+points.get(0).y, points.get(0), 1, 1, new Scalar(255,100,200));
+                System.out.println();
+                for (Point p : points) {
+                    System.out.println(p.x + " " + p.y);
+                }
+                draw(points, annotated, new Scalar(0,255,0));
+                Imgproc.putText(annotated, points.get(0).x+" "+points.get(0).y, points.get(0), 1, 1, new Scalar(255,100,200));
 
                 double cenx = (points.get(0).x + points.get(1).x + points.get(2).x + points.get(3).x) / len;
                 double ceny = (points.get(0).y + points.get(1).y + points.get(2).y + points.get(3).y) / len;
 
                 Point center = new Point(cenx, ceny);
 
-                double ratio = 18;
+                double ratio = 32;
                 // Scale each point relative to the center
                 for (int i=0; i<len; i++) {
                     Point p = points.get(i);
@@ -121,11 +137,15 @@ public class Read {
                     double scaledY = center.y + (p.y - ceny) * ratio;                
                     p.set(new double[]{scaledX, scaledY});
                 }
-                
+
+                draw(points, annotated, new Scalar(255,0,0));
+                Imgcodecs.imwrite(temp_dir+"/annotated.png", annotated);
+
                 Mat transformed = transform_image(points, gray);
-                Imgcodecs.imwrite(temp_dir + "\\Transformed.png", transformed);
+                Imgcodecs.imwrite(temp_dir + "/Transformed.png", transformed);
 
                 output = decode(transformed);
+
                 /* try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -133,12 +153,14 @@ public class Read {
                 } */
 
                 if (output!=null) return output;
+                break;
             }
         }
         return null;
     }
     public static Scanner sc = new Scanner(System.in);
     public static int i = 1;
+
     private static String decode(Mat image) {
         QRCodeDetector qrdetector = new QRCodeDetector();
         String decoded = qrdetector.detectAndDecode(image);
@@ -152,7 +174,6 @@ public class Read {
             byte[] data = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
             image.get(0, 0, data);
 
-            bufferedImage = applyThreshold(bufferedImage, 180);
             ImageIO.write(bufferedImage, "png", new File(temp_dir+"/"+i+"uuuu.png"));
             i+=1;
             
@@ -168,24 +189,6 @@ public class Read {
         return null;
     }
 
-    private static BufferedImage applyThreshold(BufferedImage image, int threshold) {
-        BufferedImage thresholdedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_BINARY);
-        
-        for (int y = 0; y < image.getHeight(); y++) {
-            for (int x = 0; x < image.getWidth(); x++) {                
-                // Apply the threshold
-                int gray = image.getRGB(x, y) & 0xFF;
-
-                if (gray >= threshold) {
-                    thresholdedImage.setRGB(x, y, 0xFFFFFF); // White
-                } else {
-                    thresholdedImage.setRGB(x, y, 0x000000); // Black
-                }
-            }
-        }
-        return thresholdedImage;
-    }
-
     private static Mat transform_image(ArrayList<Point> points, Mat original_img) {
         Point topLeft = points.get(0);
         Point topRight = points.get(1);
@@ -195,11 +198,8 @@ public class Read {
         double width = Math.sqrt(Math.pow(topLeft.x-topRight.x, 2) + Math.pow(topLeft.y-topRight.y, 2));
         double height = Math.sqrt(Math.pow(topRight.x-bottomRight.x, 2) + Math.pow(topRight.y-bottomRight.y, 2));
 
-        if (width>height) {
-            height = width;
-        } else {
-            width = height;
-        }
+        if (width>height) height = width;
+        else width = height;
 
         Point outputTopLeft = new Point(0, 0);
         Point outputTopRight = new Point(width, 0);
