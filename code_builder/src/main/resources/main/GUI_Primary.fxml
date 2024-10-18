@@ -90,8 +90,9 @@
                         </AnchorPane>
                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="370.0" prefWidth="309.0" SplitPane.resizableWithParent="false">
                            <children>
-                              <Button id="download_butt" fx:id="downloadButton" layoutX="57.333333333333336" layoutY="369.6666666666667" mnemonicParsing="false" onAction="#download_press" text="Download" AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="57.333333333333336" />
-                              <Button id="upload_button" fx:id="uploadButton" layoutX="226.0" layoutY="369.6666666666667" mnemonicParsing="false" onAction="#upload_press" text="Upload" AnchorPane.bottomAnchor="25.0" AnchorPane.rightAnchor="70.66666666666669" />
+                              <Button id="download_butt" fx:id="downloadButton" layoutX="40.0" layoutY="374.0" mnemonicParsing="false" onAction="#download_press" text="Download" AnchorPane.bottomAnchor="25.19999999999999" AnchorPane.leftAnchor="40.0" />
+                              <Button id="upload_button" fx:id="uploadButton" layoutX="149.0" layoutY="374.0" mnemonicParsing="false" onAction="#upload_press" text="Upload" AnchorPane.bottomAnchor="25.20000000000001" AnchorPane.leftAnchor="149.0" AnchorPane.rightAnchor="151.2" />
+                              <Button id="camera" fx:id="cam_butt" layoutX="234.0" layoutY="374.0" mnemonicParsing="false" onAction="#cam_toggle" text="Open Camera" AnchorPane.bottomAnchor="25.20000000000001" AnchorPane.rightAnchor="31.599999999999994" />
                               <StackPane layoutX="27.0" layoutY="41.0" prefHeight="300.0" prefWidth="300.0" AnchorPane.bottomAnchor="76.33333333333331" AnchorPane.leftAnchor="26.666666666666686" AnchorPane.rightAnchor="27.666666666666686" AnchorPane.topAnchor="41.333333333333314">
                                  <children>
                                     <ImageView id="output_image" fx:id="output_image" fitHeight="300.0" fitWidth="300.0" nodeOrientation="INHERIT" pickOnBounds="true" preserveRatio="true" />

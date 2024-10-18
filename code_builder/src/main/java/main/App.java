@@ -1,6 +1,7 @@
 package main;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -33,7 +34,16 @@ public class App extends Application {
         stage.setMinWidth(650);
         stage.setTitle("Scannable Code Generator");
         stage.setScene(scene);
+
+        stage.setOnCloseRequest(event -> {
+            GUI_Builder.stop_cam(); // Call the non-static method
+            stage.close();
+            Platform.exit();
+        });
+
+
         stage.show();
+        
     }
 
     static void setRoot(String fxml) throws IOException {

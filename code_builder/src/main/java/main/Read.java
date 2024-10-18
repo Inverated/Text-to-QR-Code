@@ -40,15 +40,23 @@ public class Read {
 
     public static String decode_qr_code(String path) {
         Mat image = Imgcodecs.imread(path);
+        return decoding(image);
+    }
+
+    public static String decode_qr_code(Mat image) {
+        return decoding(image);
+    }
+
+    private static String decoding(Mat image) {
         Mat annotated = image.clone();
 
         Mat gray = new Mat();
         Imgproc.cvtColor(image, gray, Imgproc.COLOR_BGR2GRAY);
-        Imgcodecs.imwrite(temp_dir+"/gray.png", gray);
+        //Imgcodecs.imwrite(temp_dir+"/gray.png", gray);
 
         Mat blackAndWhiteImage = new Mat();
         Imgproc.threshold(gray, blackAndWhiteImage, 100, 255, Imgproc.THRESH_BINARY);
-        Imgcodecs.imwrite(temp_dir+"/black and wite.png", blackAndWhiteImage);
+        //Imgcodecs.imwrite(temp_dir+"/black and wite.png", blackAndWhiteImage);
 
         String output = decode(gray);
         if (output != null) {
@@ -61,11 +69,11 @@ public class Read {
         double sigmaColor = 80;  // Filter sigma in the color space (higher value = more blur)
         double sigmaSpace = 200;  // Filter sigma in the coordinate space (higher value = more blur)
         Imgproc.bilateralFilter(blackAndWhiteImage, filteredImage, diameter, sigmaColor, sigmaSpace);
-        Imgcodecs.imwrite(temp_dir+"/bilateral blurred.png", filteredImage);
+        //Imgcodecs.imwrite(temp_dir+"/bilateral blurred.png", filteredImage);
 
         Mat edges = new Mat();
         Imgproc.Canny(blackAndWhiteImage, edges, 100, 200);
-        Imgcodecs.imwrite(temp_dir+"/edges.png", edges);
+        //Imgcodecs.imwrite(temp_dir+"/edges.png", edges);
 
         List<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
@@ -142,7 +150,7 @@ public class Read {
                 Imgcodecs.imwrite(temp_dir+"/annotated.png", annotated);
 
                 Mat transformed = transform_image(points, gray);
-                Imgcodecs.imwrite(temp_dir + "/Transformed.png", transformed);
+                //Imgcodecs.imwrite(temp_dir + "/Transformed.png", transformed);
 
                 output = decode(transformed);
 
@@ -153,11 +161,13 @@ public class Read {
                 } */
 
                 if (output!=null) return output;
-                break;
+                
+                //break;
             }
         }
         return null;
     }
+
     public static Scanner sc = new Scanner(System.in);
     public static int i = 1;
 

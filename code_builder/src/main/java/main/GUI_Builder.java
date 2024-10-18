@@ -11,16 +11,26 @@ package main;
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
+
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.videoio.VideoCapture;
+import org.opencv.videoio.Videoio;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
@@ -33,6 +43,7 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -52,6 +63,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.util.Duration;
 
+
 public class GUI_Builder implements Initializable {
     @FXML private Pane qr_option;
     @FXML private TextArea generatetext;    //input and output text
@@ -63,6 +75,7 @@ public class GUI_Builder implements Initializable {
 
     @FXML private Button downloadButton;
     @FXML private Button uploadButton;
+    @FXML private Button cam_butt;
     @FXML private Button upload_logo;
     @FXML private Button generate_button;
     @FXML private Button remove_button;
@@ -84,6 +97,9 @@ public class GUI_Builder implements Initializable {
     private BufferedImage current_logo = null;
     private BufferedImage current_combined = null;
 
+    private static VideoCapture capture = null;
+    private ExecutorService executorService;
+
 
     @FXML
     private void get_type(ActionEvent event) {
@@ -91,6 +107,10 @@ public class GUI_Builder implements Initializable {
         if (output_type == "Qr Code") {
             qr_option.setVisible(true);
         } else {
+            current_logo = null;
+            current_combined = null;
+            logo_image.setImage(null);
+            remove_button.setDisable(true);
             qr_option.setVisible(false);
         }
     }
@@ -149,6 +169,115 @@ public class GUI_Builder implements Initializable {
         logo_size.setDisable(false);
     }
     
+    int fps = 0;
+    int fps_max = 10;
+
+    public static void stop_cam() {
+        if (capture != null || capture.isOpened()) {
+            capture.release();
+        }
+    }
+
+    @FXML
+    private void cam_toggle(ActionEvent event) { //show opencv cam in output_image (image view)
+        if (cam_butt.getText().equals("Close Camera")) {
+            executorService.shutdownNow();
+            cam_butt.setText("Open Camera");
+            stop_cam();
+            return;
+        }
+
+        System.loadLibrary(org.opencv.core.Core.NATIVE_LIBRARY_NAME);
+
+
+        capture = new VideoCapture(0); // Open the default webcam
+
+        if (!capture.isOpened()) {
+            bad_result.setText("Unable to open camera");
+            System.out.println("Unable to open the webcam.");
+            return;
+        }
+
+        cam_butt.setText("Close Camera");
+        // Create a separate thread for video capture to avoid freezing the UI
+        Runnable frameGrabber = new Runnable() {
+            @Override
+            public void run() {
+                Mat frame = new Mat();
+                fps = 0;
+                fps_max = 10;
+
+                while (true) {
+                    if (capture.read(frame)) {
+                        if (!capture.isOpened()) {
+                            executorService.shutdownNow();
+                            stop_cam();
+                        }
+                        MatOfByte mob = new MatOfByte();
+                        Imgcodecs.imencode(".jpg", frame, mob);
+                        byte ba[] = mob.toArray();
+
+                        BufferedImage bufferedimg;
+                        try {
+                            bufferedimg = ImageIO.read(new ByteArrayInputStream(ba));
+                        } catch (IOException e) {
+                            continue;
+                        }
+
+                        fps++;
+
+                        // Update the ImageView on the JavaFX Application Thread
+                        Platform.runLater(() -> display_generated(bufferedimg, output_image));
+                        
+
+                        executorService.submit(() -> {
+                            processImage(frame, bufferedimg);
+                        });
+                    }
+                }
+            }
+        };
+
+        Thread thread = new Thread(frameGrabber);
+        thread.setDaemon(true);
+        thread.start();
+        executorService = Executors.newSingleThreadExecutor();
+    }
+
+    private void processImage(Mat frame, BufferedImage bufferedimg)  {
+        System.out.println("AA");
+        if (!capture.isOpened()) {
+            executorService.shutdownNow();
+            stop_cam();  
+        }
+        if (fps==fps_max) {
+            fps = 0;
+            String decoded_string = Read.decode_qr_code(frame);
+
+            /* if (decoded_string != null) {
+                result_handler.setText("Code found. Type: Qr Code");
+                output_choice.setValue("Qr Code");
+                cam_butt.setText("Open Camera");
+            } else { */
+                Result qrCodeResult = decode_code(bufferedimg);
+    
+                if (qrCodeResult == null) {
+                    return;
+                }
+                BarcodeFormat code_type = qrCodeResult.getBarcodeFormat();
+                decoded_string = qrCodeResult.getText();
+                result_handler.setText("Code found. Type: " + code_type);
+                output_choice.setValue(dictionary.get(code_type));
+            //}
+            result_handler.setVisible(true);
+            generatetext.setText(decoded_string); 
+
+            cam_butt.setText("Open Camera");
+            stop_cam();
+            executorService.shutdownNow();
+        }
+    }
+
     private void display_generated(BufferedImage image, ImageView location) {
         Image writable = SwingFXUtils.toFXImage(image, null);
         location.setImage(writable);      
@@ -210,7 +339,8 @@ public class GUI_Builder implements Initializable {
         }
 
         int current_width = current.getWidth(); int current_height = current.getWidth();
-        int new_width = (int) ((current_width/3)*(size/100)); int new_height = (int) ((current_height/3)*(size/100));
+        int new_width   = (int) ((current_width /3) *(size/100)); 
+        int new_height  = (int) ((current_height/3) *(size/100));
 
         java.awt.Image tmp = logo.getScaledInstance(new_width, new_height, java.awt.Image.SCALE_SMOOTH);
         logo = new BufferedImage(new_width, new_height, BufferedImage.TYPE_INT_ARGB);
@@ -351,8 +481,6 @@ public class GUI_Builder implements Initializable {
             if (current_logo == null) return;
             set_logo();
         });
-
-        
 
         logo_size.setOnMouseReleased(event -> {
             if (current_combined == null) return;
