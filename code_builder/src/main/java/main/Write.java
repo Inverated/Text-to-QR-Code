@@ -1,4 +1,5 @@
 package main;
+
 // Java code to generate QR code
 
 import java.awt.image.BufferedImage;
@@ -18,7 +19,7 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
 
-public class Make {
+public class Write {
     public static Map<EncodeHintType, Object> qr_formatting(Map<EncodeHintType, Object> hashMap, int error_lvl) {
         hashMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.L);
         hashMap.put(EncodeHintType.MARGIN, 1);
@@ -111,19 +112,17 @@ public class Make {
         // The path where the image will get saved
         long time = System.currentTimeMillis();
         String file_name = time + ".png";
-        String path = "src/main/resources/temp_img/"+ file_name;
+
+        String path = System.getProperty("user.dir");
+        String[] temp = path.split("\\\\");
+        if (temp[temp.length-1].equals("code_builder")) path += "\\src\\main\\resources\\temp_img\\" + file_name;
+        else path += "\\code_builder\\src\\main\\resources\\temp_img\\" + file_name;
         
         // Encoding charset
         String charset = "UTF-8";
 
-        // Create the QR code and save
-        // in the specified folder
-        // as a jpg file
+        // Create the QR code and save in temp folder as a jpg file
         BufferedImage image = create(data, path, charset, error_lvl,  output_type, inner, outer);
-        //System.out.println("QR Code Generated!!! ");
         return image;
-    }
-
-    public static void main(String[] args) {
     }
 }

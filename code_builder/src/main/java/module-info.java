@@ -6,6 +6,7 @@ module main {
     requires javafx.swing;
     requires com.google.zxing.javase;
     requires transitive java.desktop;
+    requires transitive opencv;
 
     opens main to javafx.fxml;
     exports main;
