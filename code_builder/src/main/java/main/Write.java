@@ -48,7 +48,8 @@ class Write {
         Color innerColor, Color outerColor) 
     {
         BufferedImage colored = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
-        byte[] data = ((DataBufferByte) colored.getRaster().getDataBuffer()).getData();
+        byte[] data = ((DataBufferByte) colored.getRaster().getDataBuffer()).getData();  
+        //apparently writing to databufferbyte faster than set(x,y)
 
         if (innerColor == Color.BLACK && outerColor == Color.WHITE) {
             return MatrixToImageWriter.toBufferedImage(matrix);
@@ -63,6 +64,7 @@ class Write {
                 boolean pixel = matrix.get(x, y);
                 int index = (y * width + x) * 3;
 
+                //??????
                 if (pixel) {
                     // Set the inner color (QR code pixel)
                     data[index] = (byte) (innerARGB & 0xFF);             // Blue
@@ -110,8 +112,7 @@ class Write {
     }
     
     // Function to create the QR code
-    private static BufferedImage create(String data, String path,
-                                    String charset, int error_lvl,
+    private static BufferedImage create(String data, String charset, int error_lvl,
                                     String output_type, Color inner, Color outer) 
         throws WriterException, IOException  {
             
@@ -130,31 +131,31 @@ class Write {
                 output_format, width, height, hashMap);
             
             BufferedImage  image = color_qr(width,height, matrix, inner, outer);
-            
-            File file = new File(path);
-            ImageIO.write(image,"PNG",file);
-    
+                
             return image;
             }
       
         // Driver code
-        public static BufferedImage create_temp(String data, int error_lvl, String output_type, Color inner, Color outer)
-            throws WriterException, IOException, IllegalArgumentException          
-        {   
-            // The path where the image will get saved
-            long time = System.currentTimeMillis();
-            String file_name = time + ".png";
-    
-            String path = System.getProperty("user.dir");
-            String[] temp = path.split("\\\\");
-            if (temp[temp.length-1].equals("code_builder")) path += "\\src\\main\\resources\\temp_img\\" + file_name;
-            else path += "\\code_builder\\src\\main\\resources\\temp_img\\" + file_name;
-            
-            // Encoding charset
-            String charset = "UTF-8";
-    
-            // Create the QR code and save in temp folder as a jpg file
-            BufferedImage image = create(data, path, charset, error_lvl,  output_type, inner, outer);
+    public static BufferedImage create_temp(String data, int error_lvl, String output_type, Color inner, Color outer) throws WriterException, IOException, IllegalArgumentException {   
+        BufferedImage image = create(data, "UTF-8", error_lvl,  output_type, inner, outer);
+        //save_temp_img(image);
+        
         return image;
     }
+
+    @SuppressWarnings("unused")
+    private static void save_temp_img(BufferedImage image) throws IOException {
+        // The path where the image will get saved
+        long time = System.currentTimeMillis();
+        String file_name = time + ".png";
+
+        String path = System.getProperty("user.dir");
+        String[] temp = path.split("\\\\");
+        if (temp[temp.length-1].equals("code_builder")) path += "\\src\\main\\resources\\temp_img\\" + file_name;
+        else path += "\\code_builder\\src\\main\\resources\\temp_img\\" + file_name;
+        File file = new File(path);
+        ImageIO.write(image,"PNG",file);
+    }
+
+    
 }

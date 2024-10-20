@@ -34,8 +34,8 @@ public class Read {
     }
     private static ArrayList<String[]> confidence = new ArrayList<>();
 
-    private final static String[] split_dir = System.getProperty("user.dir").split("\\\\"); 
-    private final static String temp_dir = System.getProperty("user.dir") + (split_dir[split_dir.length-1].equals("code_builder") ? "\\src\\main\\resources\\temp_img" : "\\code_builder\\src\\main\\resources\\temp_img");
+    //private final static String[] split_dir = System.getProperty("user.dir").split("\\\\"); 
+    //private final static String temp_dir = System.getProperty("user.dir") + (split_dir[split_dir.length-1].equals("code_builder") ? "\\src\\main\\resources\\temp_img" : "\\code_builder\\src\\main\\resources\\temp_img");
 
 
     public static String[] decode_qr_code(String path) {
@@ -49,7 +49,7 @@ public class Read {
     }
 
     private static String[] decoding(Mat image) {
-        Imgcodecs.imwrite(temp_dir+"/plain.png", image);
+        //Imgcodecs.imwrite(temp_dir+"/plain.png", image);
 
         //Mat annotated = image.clone();
 
@@ -59,7 +59,7 @@ public class Read {
         int border = 15;
         Core.copyMakeBorder(gray, gray, border, border, border, border, Core.BORDER_CONSTANT, new  Scalar(255, 255, 255));
 
-        Imgcodecs.imwrite(temp_dir+"/gray.png", gray);
+        //Imgcodecs.imwrite(temp_dir+"/gray.png", gray);
 
         String[] result = decode(gray);
         if (result != null) {
@@ -141,7 +141,7 @@ public class Read {
                 Point center = new Point(cenx, ceny);
 
                 double ratio = Math.max(image.rows()/min_len, image.cols()/min_len);
-                //System.out.println(min_len);
+                
                 // Scale each point relative to the center
                 for (int i=0; i<len; i++) {
                     Point p = points.get(i);
@@ -153,9 +153,9 @@ public class Read {
                 /* draw(points, annotated, new Scalar(255,0,0));
                 Imgcodecs.imwrite(temp_dir+"/annotated.png", annotated);
                 */
-                Mat transformed = transform_image(points, gray);        //make sure image grey to feed into decode
-                //Imgcodecs.imwrite(temp_dir + "/Transformed.png", transformed);
+                Mat transformed = transform_image(points, gray);        //make sure image grey to fed into decode
 
+                //Imgcodecs.imwrite(temp_dir + "/Transformed.png", transformed);
                 result = decode(transformed);
                 if (result != null) {
                     add_confidence(result);
@@ -223,15 +223,11 @@ public class Read {
     }
 
     private static Mat buffToMat(BufferedImage bufferedImage) {
-            // Create a Mat object with the same dimensions and type as the BufferedImage.TYPE_3BYTE_BGR
+        // Must BufferedImage.TYPE_3BYTE_BGR
         Mat mat = new Mat(bufferedImage.getHeight(), bufferedImage.getWidth(), CvType.CV_8UC3);
 
-        // Get the pixel data from the BufferedImage
         byte[] data = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
-
-        // Put the data into the Mat object
         mat.put(0, 0, data);
-
         return mat;
     }
 
