@@ -7,7 +7,6 @@ Fuck
 
 package main;
 
-
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -17,12 +16,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ResourceBundle;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import javax.imageio.ImageIO;
 
@@ -30,17 +27,9 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.videoio.VideoCapture;
-import org.opencv.videoio.Videoio;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.DecodeHintType;
-import com.google.zxing.MultiFormatReader;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
 import com.google.zxing.WriterException;
-import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
-import com.google.zxing.common.HybridBinarizer;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -70,8 +59,6 @@ public class GUI_Builder implements Initializable {
 
     @FXML private Label download_status;
     @FXML private Label result_handler;
-    @FXML private Label bad_result;
-
 
     @FXML private Button downloadButton;
     @FXML private Button uploadButton;
@@ -98,7 +85,10 @@ public class GUI_Builder implements Initializable {
     private BufferedImage current_combined = null;
 
     private static VideoCapture capture = null;
-    private ExecutorService executorService;
+    private int fps = 0;
+    private final int fps_max = 10;
+    private boolean capturing = false;
+    private boolean download_warning = false;
 
 
     @FXML
@@ -115,40 +105,27 @@ public class GUI_Builder implements Initializable {
         }
     }
 
-    private int convert_color(ColorPicker picker){
-        Color color = picker.getValue();
-        int r = (int) Math.round(color.getRed()*255);
-        int g = (int) Math.round(color.getGreen()*255);
-        int b = (int) Math.round(color.getBlue()*255);
-        r = (r << 16) & 0x00FF0000;
-        g = (g << 8) & 0x0000FF00;
-        b = b & 0x000000FF;
-        return 0xFF000000 | r | g | b;
-    }
-
     @FXML
     private void onGeneratePush(ActionEvent event) {
         String user_input = generatetext.getText();
         String output_type = output_choice.getValue();
         result_handler.setVisible(false);
-        bad_result.setVisible(false);
 
         if (user_input.isBlank()) return;
         
-        int inner = convert_color(inner_color);
-        int outer = convert_color(outer_color);
         int error_lvl = correction_choice.getValue();
 
         BufferedImage image;
         try {
-            image = Write.create_temp(user_input, error_lvl, output_type, inner, outer);
+            image = Write.create_temp(user_input, error_lvl, output_type, inner_color.getValue(), outer_color.getValue());
         } catch (WriterException e) {
-            result_handler.setVisible(false);
-            bad_result.setVisible(true);
-            bad_result.setText("Invalid/Excess input for type of code selected.");
+            set_result("Invalid/Excess input for type of code selected.");
             return;
         } catch (IOException e) {
             e.printStackTrace();
+            return;
+        } catch (IllegalArgumentException e) {
+            raise_error(e);
             return;
         }
         for (int i = 0; i < 5; i++) { 
@@ -158,7 +135,7 @@ public class GUI_Builder implements Initializable {
                 break;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                }
+            }
         }
         current_image = image;
         if (current_logo != null) {
@@ -168,148 +145,163 @@ public class GUI_Builder implements Initializable {
         upload_logo.setDisable(false);
         logo_size.setDisable(false);
     }
-    
-    int fps = 0;
-    int fps_max = 10;
 
+    private void set_result(String res) {
+        result_handler.setText(res);
+        result_handler.setTextFill(Color.BLACK);
+        result_handler.setVisible(true);
+    }
+
+    public void raise_error(String e) {
+        result_handler.setText(e);
+        result_handler.setTextFill(Color.RED);
+        result_handler.setVisible(true);
+    }
+    
+    public void raise_error(IllegalArgumentException e) {
+        result_handler.setText(e.toString().split(":")[1]);
+        result_handler.setTextFill(Color.RED);
+        result_handler.setVisible(true);
+    }
+    
     public static void stop_cam() {
-        if (capture != null || capture.isOpened()) {
+        if (capture != null && capture.isOpened()) {
             capture.release();
         }
     }
 
     @FXML
     private void cam_toggle(ActionEvent event) { //show opencv cam in output_image (image view)
+        //System.out.println(cam_butt.getText());
         if (cam_butt.getText().equals("Close Camera")) {
-            executorService.shutdownNow();
-            cam_butt.setText("Open Camera");
             stop_cam();
+            cam_butt.setText("Open Camera");
             return;
         }
-
         System.loadLibrary(org.opencv.core.Core.NATIVE_LIBRARY_NAME);
-
 
         capture = new VideoCapture(0); // Open the default webcam
 
         if (!capture.isOpened()) {
-            bad_result.setText("Unable to open camera");
-            System.out.println("Unable to open the webcam.");
+            raise_error("Unable to open camera");
             return;
         }
 
         cam_butt.setText("Close Camera");
         // Create a separate thread for video capture to avoid freezing the UI
-        Runnable frameGrabber = new Runnable() {
-            @Override
-            public void run() {
-                Mat frame = new Mat();
-                fps = 0;
-                fps_max = 10;
+        capturing = true;
+        new Thread(this::start_capture).start();
+    }
 
-                while (true) {
-                    if (capture.read(frame)) {
-                        if (!capture.isOpened()) {
-                            executorService.shutdownNow();
-                            stop_cam();
-                        }
-                        MatOfByte mob = new MatOfByte();
-                        Imgcodecs.imencode(".jpg", frame, mob);
-                        byte ba[] = mob.toArray();
+    private BufferedImage MatToBuff(Mat img) {
+        MatOfByte mob = new MatOfByte();
+        Imgcodecs.imencode(".jpg", img, mob);
+        byte ba[] = mob.toArray();
 
-                        BufferedImage bufferedimg;
-                        try {
-                            bufferedimg = ImageIO.read(new ByteArrayInputStream(ba));
-                        } catch (IOException e) {
-                            continue;
-                        }
+        BufferedImage bufferedimg;
+        try {
+            bufferedimg = ImageIO.read(new ByteArrayInputStream(ba));
+        } catch (IOException e) { //no img captured
+            return null;
+        }
+        return bufferedimg;
+    }
 
-                        fps++;
+    private void start_capture() {
+        Mat frame = new Mat();
+        while (capturing && capture.isOpened()){
+            capture.read(frame);
+            if (frame.empty()) {
+                stop_cam();
+            }
+            BufferedImage bufferedimg = MatToBuff(frame);
+            if (bufferedimg == null) continue;
+        
+            Platform.runLater(() ->  display_generated(bufferedimg, output_image));
+            fps++;
 
-                        // Update the ImageView on the JavaFX Application Thread
-                        Platform.runLater(() -> display_generated(bufferedimg, output_image));
-                        
-
-                        executorService.submit(() -> {
-                            processImage(frame, bufferedimg);
+            if (fps == fps_max) {
+                new Thread(() -> {
+                    String[] res = process_img(frame);
+                    if (res != null) {
+                        Platform.runLater(() -> {       //bring out interaction with fx to run in platform.runlater,  thread cannot interact directly
+                            set_result("Code found. Type: " + res[1]);
+                            output_choice.setValue(res[1]);
+                            generatetext.setText(res[0]); 
+                            cam_butt.setText("Open Camera");
                         });
                     }
-                }
+                }).start();
             }
-        };
-
-        Thread thread = new Thread(frameGrabber);
-        thread.setDaemon(true);
-        thread.start();
-        executorService = Executors.newSingleThreadExecutor();
+        }
+        stop_cam();
     }
 
-    private void processImage(Mat frame, BufferedImage bufferedimg)  {
-        System.out.println("AA");
-        if (!capture.isOpened()) {
-            executorService.shutdownNow();
-            stop_cam();  
+    private String[] process_img(Mat frame) {
+        fps = 0;
+        String[] result = Read.decode_qr_code(frame);
+        if (result == null) {
+            return null;
         }
-        if (fps==fps_max) {
-            fps = 0;
-            String decoded_string = Read.decode_qr_code(frame);
 
-            /* if (decoded_string != null) {
-                result_handler.setText("Code found. Type: Qr Code");
-                output_choice.setValue("Qr Code");
-                cam_butt.setText("Open Camera");
-            } else { */
-                Result qrCodeResult = decode_code(bufferedimg);
-    
-                if (qrCodeResult == null) {
-                    return;
-                }
-                BarcodeFormat code_type = qrCodeResult.getBarcodeFormat();
-                decoded_string = qrCodeResult.getText();
-                result_handler.setText("Code found. Type: " + code_type);
-                output_choice.setValue(dictionary.get(code_type));
-            //}
-            result_handler.setVisible(true);
-            generatetext.setText(decoded_string); 
-
-            cam_butt.setText("Open Camera");
-            stop_cam();
-            executorService.shutdownNow();
-        }
+        result[1] = dictionary.get(BarcodeFormat.valueOf(result[1]));
+        capturing = false;
+        return result;
     }
+
 
     private void display_generated(BufferedImage image, ImageView location) {
         Image writable = SwingFXUtils.toFXImage(image, null);
         location.setImage(writable);      
     }
 
-
     @FXML
     private void download_press(ActionEvent event) throws IOException {
         PauseTransition pause = new PauseTransition(Duration.seconds(3));
         if (current_image == null) {
-            bad_result.setVisible(true);
-            bad_result.setText("Please generate an image before downloading");
-            pause.setOnFinished(EventHandler -> result_handler.setVisible(false));
-            pause.play();
+            raise_error("Please generate an image before downloading");
             return;
         }
+
+        String[] result;
+        if (current_combined != null) {
+            result = Read.decode_qr_code(current_combined);
+        } else {
+            result = Read.decode_qr_code(current_image);
+        }
+
+        if (!download_warning) { //check if code is readable
+            if (result == null) {
+                raise_error("Please try another logo/color. Download again to ignore");
+                download_warning = true;
+                return;
+            }      
+            if (!dictionary.get(BarcodeFormat.valueOf(result[1])).equals( output_choice.getValue() )) {
+                raise_error("Format different from selected. Download again to ignore");
+                download_warning = true;
+                return;
+            }
+        }
+
+        download_warning = false;
+        set_result("");
+
         File filetosave = choose_file(1); 
         if (filetosave == null) return;    
         
         if (current_combined != null) {current_image = current_combined;}
         ImageIO.write(current_image,"PNG",filetosave);
-        bad_result.setVisible(false);
-        result_handler.setVisible(true);
-        result_handler.setText("Image saved at "+filetosave.getAbsolutePath());
+
+        result_handler.setVisible(false);
+        set_result("Image saved at "+filetosave.getAbsolutePath());
         download_status.setVisible(true);
 
         pause.setOnFinished(EventHandler -> {
             download_status.setVisible(false);
-            result_handler.setVisible(false);
         });
         pause.play();
     }
+
     private File choose_file(int type) {
         FileChooser filechooser = new FileChooser();
         filechooser.setTitle("Save Image");
@@ -343,13 +335,13 @@ public class GUI_Builder implements Initializable {
         int new_height  = (int) ((current_height/3) *(size/100));
 
         java.awt.Image tmp = logo.getScaledInstance(new_width, new_height, java.awt.Image.SCALE_SMOOTH);
-        logo = new BufferedImage(new_width, new_height, BufferedImage.TYPE_INT_ARGB);
+        logo = new BufferedImage(new_width, new_height, BufferedImage.TYPE_3BYTE_BGR);
 
         Graphics2D g2d = logo.createGraphics();
         g2d.drawImage(tmp, 0, 0, null);
         g2d.dispose(); 
 
-        BufferedImage combined = new BufferedImage(current.getWidth(), current.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        BufferedImage combined = new BufferedImage(current.getWidth(), current.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
         Graphics2D graphics = (Graphics2D) combined.getGraphics();
 
         graphics.drawImage(current, 0,0,null);
@@ -372,54 +364,6 @@ public class GUI_Builder implements Initializable {
         remove_button.setDisable(false);
     }
 
-    private  BufferedImage applyThreshold(BufferedImage image, int threshold) {
-        BufferedImage thresholdedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_BINARY);
-        
-        for (int y = 0; y < image.getHeight(); y++) {
-            for (int x = 0; x < image.getWidth(); x++) {
-                int rgb = image.getRGB(x, y);
-                int red = (rgb >> 16) & 0xFF;
-                int green = (rgb >> 8) & 0xFF;
-                int blue = rgb & 0xFF;
-                int gray = (red + green + blue) / 3; // Convert to grayscale
-                
-                // Apply the threshold
-                int binaryColor = gray > threshold ? 0xFFFFFF : 0x000000;
-                
-                thresholdedImage.setRGB(x, y, binaryColor);
-            }
-        }
-        return thresholdedImage;
-    }
-    
-    public Result decode_code(BufferedImage coloredImage){
-        Map<DecodeHintType, Boolean> hintMap = new HashMap<>();
-        hintMap.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
-        BufferedImage bufferedImage = new BufferedImage(coloredImage.getWidth(), coloredImage.getHeight(), 10);
-        Graphics2D g2d = bufferedImage.createGraphics();
-        g2d.drawImage(coloredImage, 0, 0, null);
-        g2d.dispose(); 
-        display_generated(coloredImage, output_image);
-
-        Result qrCodeResult = null;
-
-        for (int i = 255; i > 0; i-=10) {
-            BufferedImage adjusted = applyThreshold(bufferedImage, i);
-                    
-            BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(
-                new BufferedImageLuminanceSource(
-                    adjusted)));
-        
-            try {
-                qrCodeResult = new MultiFormatReader().decode(binaryBitmap, hintMap);
-            } catch (NotFoundException e) {
-                continue;
-            }
-            return qrCodeResult;
-            //display_generated(adjusted);
-        }
-        return qrCodeResult;
-    }
     
     @FXML
     private void upload_press(ActionEvent event) throws IOException {
@@ -427,46 +371,29 @@ public class GUI_Builder implements Initializable {
         File file = choose_file(2);
         if (file == null) return; 
 
-        result_handler.setText("Looking or code...");
-        result_handler.setVisible(true);
+        set_result("Looking for code...");
 
-        String decoded_string = Read.decode_qr_code(file.getAbsolutePath());   
+        BufferedImage coloredImage = ImageIO.read(file);
+        display_generated(coloredImage, output_image);
 
-        if (decoded_string != null) {
-            BufferedImage coloredImage = ImageIO.read(file);
-            display_generated(coloredImage, output_image);
-            result_handler.setText("Code found. Type: Qr Code");
-            output_choice.setValue("Qr Code");
+        String[] result = Read.decode_qr_code(file.getAbsolutePath());   
 
-        } else {
-            BufferedImage coloredImage = ImageIO.read(file);
-            Result qrCodeResult = decode_code(coloredImage);
+        if (result == null) {
+            raise_error("Code not detected");
+            return;
+        } 
 
-            if (qrCodeResult == null) {
-                result_handler.setVisible(false);
-                bad_result.setText("Code cannot be detected. Please use another image.");
-                bad_result.setVisible(true);
-                return;
-            }
-            BarcodeFormat code_type = qrCodeResult.getBarcodeFormat();
-            decoded_string = qrCodeResult.getText();
-            result_handler.setText("Code found. Type: "+code_type);
-            output_choice.setValue(dictionary.get(code_type));
-        }
+        String output_type = dictionary.get(BarcodeFormat.valueOf(result[1]));
+        set_result("Code found. Type: " + output_type);
+        output_choice.setValue(output_type);
 
-        bad_result.setVisible(false);
-        result_handler.setVisible(true);
-        String textresult = decoded_string;
-        generatetext.setText(textresult); 
+        generatetext.setText(result[0]); 
     }
                
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        //generatetext.setText("rest");
-        //inner_color.setValue(Color.WHITE);
-
-        output_choice.getItems().addAll("Qr Code", "Code 39 (Standard Barcode)", "Code 93", "Code 128", "AZTEC", "CODABAR", "Data Matrix", "EAN 13", "EAN 8", "ITF", "MAXICODE", "PDF 417" );
+        output_choice.getItems().addAll(dictionary.values());
         output_choice.setValue("Qr Code");
 
         correction_choice.getItems().addAll(7,15,25,30);
@@ -483,32 +410,27 @@ public class GUI_Builder implements Initializable {
         });
 
         logo_size.setOnMouseReleased(event -> {
-            if (current_combined == null) return;
-            Result qrCodeResult = decode_code(current_combined);
-            if (qrCodeResult == null) {
-                result_handler.setVisible(false);
-                bad_result.setText("Code cannot be detected, please try another logo size");
-                bad_result.setVisible(true);
+            if (current_combined == null) {
+                return;
+            }
+            String[] result = Read.decode_qr_code(current_combined);
+            if (result == null) {
+                raise_error("Code cannot be detected, please try another logo size");
             }
             else {
-                BarcodeFormat output_type = qrCodeResult.getBarcodeFormat();
-                if (dictionary.get(output_type) != output_choice.getValue()) {
-                    result_handler.setVisible(false);
-                    bad_result.setText("Code detected incorrectly. Use a different logo image/size");
-                    bad_result.setVisible(true);
+                String output_type = result[1];
+                if (dictionary.get(BarcodeFormat.valueOf(output_type)) != output_choice.getValue()) {
+                    raise_error("Code detected incorrectly. Use a different logo image/size");
                 }
                 else {
-                    bad_result.setVisible(false);
-                    result_handler.setText("Code can be detected with logo. It is safe to download.");
-                    result_handler.setVisible(true);
-                }
-                
+                    set_result("Code can be detected with logo. It is safe to download.");
+                }     
             }
         });
 
     }
-    private  Map<BarcodeFormat,String> dictionary = new HashMap<BarcodeFormat, String>();
-     {
+    private final Map<BarcodeFormat,String> dictionary = new LinkedHashMap<BarcodeFormat, String>();
+    {
         dictionary.put(BarcodeFormat.QR_CODE, "Qr Code");
         dictionary.put(BarcodeFormat.CODE_39, "Code 39 (Standard Barcode)");
         dictionary.put(BarcodeFormat.CODE_93, "Code 93");
@@ -519,7 +441,12 @@ public class GUI_Builder implements Initializable {
         dictionary.put(BarcodeFormat.EAN_13, "EAN 13");
         dictionary.put(BarcodeFormat.EAN_8, "EAN 8");
         dictionary.put(BarcodeFormat.ITF, "ITF");
-        dictionary.put(BarcodeFormat.MAXICODE, "MAXICODE");
         dictionary.put(BarcodeFormat.PDF_417, "PDF 417");
+        dictionary.put(BarcodeFormat.UPC_A, "UPC A");
+        dictionary.put(BarcodeFormat.UPC_E, "UPC E");
+        dictionary.put(BarcodeFormat.UPC_EAN_EXTENSION, "UPC EAN Extension (Not supported)");
+        dictionary.put(BarcodeFormat.MAXICODE, "MAXICODE (Not supported)");
+        dictionary.put(BarcodeFormat.RSS_14, "RSS 14 (Not supported)");
+        dictionary.put(BarcodeFormat.RSS_EXPANDED, "RSS Expanded (Not supported)");
     }
 }

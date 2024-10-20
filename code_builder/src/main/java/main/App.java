@@ -10,9 +10,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.io.File;
 
-/**
- * JavaFX App
- */
+
 public class App extends Application {
 
     private static Scene scene;
@@ -36,7 +34,7 @@ public class App extends Application {
         stage.setScene(scene);
 
         stage.setOnCloseRequest(event -> {
-            GUI_Builder.stop_cam(); // Call the non-static method
+            GUI_Builder.stop_cam(); 
             stage.close();
             Platform.exit();
         });

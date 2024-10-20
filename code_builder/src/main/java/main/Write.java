@@ -3,6 +3,7 @@ package main;
 // Java code to generate QR code
 
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -18,9 +19,11 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
+import javafx.scene.paint.Color;
 
-public class Write {
-    public static Map<EncodeHintType, Object> qr_formatting(Map<EncodeHintType, Object> hashMap, int error_lvl) {
+
+class Write {
+    private static Map<EncodeHintType, Object> qr_formatting(Map<EncodeHintType, Object> hashMap, int error_lvl) {
         hashMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.L);
         hashMap.put(EncodeHintType.MARGIN, 1);
         switch (error_lvl) {
@@ -40,27 +43,51 @@ public class Write {
         return hashMap;
     }
 
-    public static BufferedImage color_qr(
+    private static BufferedImage color_qr(
         int width, int height, BitMatrix matrix,
-        int inner, int outer) 
+        Color innerColor, Color outerColor) 
     {
-        BufferedImage colored = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_INDEXED);
-        if (inner == -16777216 && outer == -1) {return MatrixToImageWriter.toBufferedImage(matrix);}
+        BufferedImage colored = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
+        byte[] data = ((DataBufferByte) colored.getRaster().getDataBuffer()).getData();
+
+        if (innerColor == Color.BLACK && outerColor == Color.WHITE) {
+            return MatrixToImageWriter.toBufferedImage(matrix);
+        }
+
+        int innerARGB = colorToARGB(innerColor);
+        int outerARGB = colorToARGB(outerColor);
+
         // Apply colors 
         for (int y = 0; y < matrix.getHeight(); y++) {
             for (int x = 0; x < matrix.getWidth(); x++) {
                 boolean pixel = matrix.get(x, y);
-                if (pixel == true) {
-                    colored.setRGB(x, y, inner);
+                int index = (y * width + x) * 3;
+
+                if (pixel) {
+                    // Set the inner color (QR code pixel)
+                    data[index] = (byte) (innerARGB & 0xFF);             // Blue
+                    data[index + 1] = (byte) ((innerARGB >> 8) & 0xFF);  // Green
+                    data[index + 2] = (byte) ((innerARGB >> 16) & 0xFF); // Red
                 } else {
-                    colored.setRGB(x, y, outer);
+                    // Set the outer color (background pixel)
+                    data[index] = (byte) (outerARGB & 0xFF);             // Blue
+                    data[index + 1] = (byte) ((outerARGB >> 8) & 0xFF);  // Green
+                    data[index + 2] = (byte) ((outerARGB >> 16) & 0xFF); // Red
                 }
             }
         }
         return colored;
     }
 
-    private static Map<String,BarcodeFormat> dictionary = new HashMap<>();;
+    public static int colorToARGB(Color color) { //no fkging clue how it works
+        int alpha = (int) (color.getOpacity() * 255) << 24; // Alpha channel
+        int red = (int) (color.getRed() * 255) << 16;       // Red channel
+        int green = (int) (color.getGreen() * 255) << 8;    // Green channel
+        int blue = (int) (color.getBlue() * 255);            // Blue channel
+        return alpha | red | green | blue;                   // Combine channels
+    }
+
+    private static final Map<String,BarcodeFormat> dictionary = new HashMap<>();
     static {
         dictionary.put("Qr Code", BarcodeFormat.QR_CODE);
         dictionary.put("Code 39 (Standard Barcode)", BarcodeFormat.CODE_39);
@@ -72,57 +99,62 @@ public class Write {
         dictionary.put("EAN 13", BarcodeFormat.EAN_13);
         dictionary.put("EAN 8", BarcodeFormat.EAN_8);
         dictionary.put("ITF", BarcodeFormat.ITF);
-        dictionary.put("MAXICODE", BarcodeFormat.MAXICODE);
         dictionary.put("PDF 417", BarcodeFormat.PDF_417);
+        dictionary.put("UPC A", BarcodeFormat.UPC_A);
+        dictionary.put("UPC E", BarcodeFormat.UPC_E);
+        dictionary.put("UPC EAN Extension (Not supported)", BarcodeFormat.UPC_EAN_EXTENSION);
+        dictionary.put("MAXICODE (Not supported)", BarcodeFormat.MAXICODE);
+        dictionary.put("RSS 14 (Not supported)", BarcodeFormat.RSS_14);
+        dictionary.put("RSS Expanded (Not supported)", BarcodeFormat.RSS_EXPANDED);
+
     }
     
     // Function to create the QR code
-    public static BufferedImage create(String data, String path,
-                                String charset, int error_lvl,
-                                String output_type, int inner, int outer)
-        throws WriterException, IOException
-    {
-        int height = 500; int width = 500; 
+    private static BufferedImage create(String data, String path,
+                                    String charset, int error_lvl,
+                                    String output_type, Color inner, Color outer) 
+        throws WriterException, IOException  {
+            
+            int height = 500; int width = 500; 
+    
+            Map<EncodeHintType, Object> hashMap = new HashMap<>();
+    
+            BarcodeFormat output_format = dictionary.get(output_type);
+    
+            if (output_format == BarcodeFormat.QR_CODE) {
+                hashMap = qr_formatting(hashMap, error_lvl);
+            } 
 
-        Map<EncodeHintType, Object> hashMap = new HashMap<>();
-
-        BarcodeFormat output_format = dictionary.get(output_type);
-
-        if (output_format == BarcodeFormat.QR_CODE) {
-            hashMap = qr_formatting(hashMap, error_lvl);
-        } 
-
-        BitMatrix matrix = new MultiFormatWriter().encode(
-            new String(data.getBytes(charset), charset),
-            output_format, width, height, hashMap);
-        
-        
-        BufferedImage  image = color_qr(width,height, matrix, inner, outer);
-        
-        File file = new File(path);
-        ImageIO.write(image,"PNG",file);
-
-        return image;
-        }
-  
-    // Driver code
-    public static BufferedImage create_temp(String data, int error_lvl, String output_type, int inner, int outer)
-        throws WriterException, IOException             
-    {   
-        // The path where the image will get saved
-        long time = System.currentTimeMillis();
-        String file_name = time + ".png";
-
-        String path = System.getProperty("user.dir");
-        String[] temp = path.split("\\\\");
-        if (temp[temp.length-1].equals("code_builder")) path += "\\src\\main\\resources\\temp_img\\" + file_name;
-        else path += "\\code_builder\\src\\main\\resources\\temp_img\\" + file_name;
-        
-        // Encoding charset
-        String charset = "UTF-8";
-
-        // Create the QR code and save in temp folder as a jpg file
-        BufferedImage image = create(data, path, charset, error_lvl,  output_type, inner, outer);
+            BitMatrix matrix = new MultiFormatWriter().encode(
+                new String(data.getBytes(charset), charset),
+                output_format, width, height, hashMap);
+            
+            BufferedImage  image = color_qr(width,height, matrix, inner, outer);
+            
+            File file = new File(path);
+            ImageIO.write(image,"PNG",file);
+    
+            return image;
+            }
+      
+        // Driver code
+        public static BufferedImage create_temp(String data, int error_lvl, String output_type, Color inner, Color outer)
+            throws WriterException, IOException, IllegalArgumentException          
+        {   
+            // The path where the image will get saved
+            long time = System.currentTimeMillis();
+            String file_name = time + ".png";
+    
+            String path = System.getProperty("user.dir");
+            String[] temp = path.split("\\\\");
+            if (temp[temp.length-1].equals("code_builder")) path += "\\src\\main\\resources\\temp_img\\" + file_name;
+            else path += "\\code_builder\\src\\main\\resources\\temp_img\\" + file_name;
+            
+            // Encoding charset
+            String charset = "UTF-8";
+    
+            // Create the QR code and save in temp folder as a jpg file
+            BufferedImage image = create(data, path, charset, error_lvl,  output_type, inner, outer);
         return image;
     }
 }
