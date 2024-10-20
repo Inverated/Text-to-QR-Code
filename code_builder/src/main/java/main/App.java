@@ -8,18 +8,22 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+
+import org.opencv.core.Core;
+
 import java.io.File;
 
 
 public class App extends Application {
-
+    static {
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME); // Load the OpenCV native library
+    }
     private static Scene scene;
     
     @Override
     public void start(Stage stage) throws IOException {     
         final String[] split_dir = System.getProperty("user.dir").split("\\\\"); 
         final String dir = System.getProperty("user.dir") + (split_dir[split_dir.length-1].equals("code_builder") ? "\\src\\main\\resources\\temp_img" : "\\code_builder\\src\\main\\resources\\temp_img");
-
         
         File[] folder = new File(dir).listFiles();
         for (File file : folder) {
@@ -40,8 +44,7 @@ public class App extends Application {
         });
 
 
-        stage.show();
-        
+        stage.show();  
     }
 
     static void setRoot(String fxml) throws IOException {
@@ -56,5 +59,4 @@ public class App extends Application {
     public static void main(String[] args) {
         launch();
     }
-
 }

@@ -29,9 +29,6 @@ import com.google.zxing.common.HybridBinarizer;
 
 
 public class Read {
-    static {
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME); // Load the OpenCV native library
-    }
     private static ArrayList<String[]> confidence = new ArrayList<>();
 
     //private final static String[] split_dir = System.getProperty("user.dir").split("\\\\"); 
@@ -56,7 +53,7 @@ public class Read {
         Mat gray = new Mat();
         Imgproc.cvtColor(image, gray, Imgproc.COLOR_BGR2GRAY);
 
-        int border = 15;
+        int border = 15; //border required for barcode that extend to edges
         Core.copyMakeBorder(gray, gray, border, border, border, border, Core.BORDER_CONSTANT, new  Scalar(255, 255, 255));
 
         //Imgcodecs.imwrite(temp_dir+"/gray.png", gray);

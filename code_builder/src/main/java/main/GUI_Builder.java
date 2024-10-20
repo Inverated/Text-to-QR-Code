@@ -10,13 +10,11 @@ package main;
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -24,8 +22,6 @@ import java.util.ResourceBundle;
 import javax.imageio.ImageIO;
 
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfByte;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.videoio.VideoCapture;
 
 import com.google.zxing.BarcodeFormat;
@@ -90,6 +86,34 @@ public class GUI_Builder implements Initializable {
     private boolean capturing = false;
     private boolean download_warning = false;
 
+    private void set_result(String res) {
+        result_handler.setText(res);
+        result_handler.setTextFill(Color.BLACK);
+        result_handler.setVisible(true);
+    }
+
+    public void raise_error(String e) {
+        result_handler.setText(e);
+        result_handler.setTextFill(Color.RED);
+        result_handler.setVisible(true);
+    }
+    
+    public void raise_error(IllegalArgumentException e) {
+        result_handler.setText(e.toString().split(":")[1]);
+        result_handler.setTextFill(Color.RED);
+        result_handler.setVisible(true);
+    }
+    
+    public static void stop_cam() {
+        if (capture != null && capture.isOpened()) {
+            capture.release();
+        }
+    }
+
+    private void display_generated(BufferedImage image, ImageView location) {
+        Image writable = SwingFXUtils.toFXImage(image, null);
+        location.setImage(writable);      
+    }
 
     @FXML
     private void get_type(ActionEvent event) {
@@ -125,16 +149,17 @@ public class GUI_Builder implements Initializable {
             e.printStackTrace();
             return;
         } catch (IllegalArgumentException e) {
-            raise_error(e);
+            raise_error(e); //code type requirement wrong
             return;
         }
         for (int i = 0; i < 5; i++) { 
             try {
-                Thread.sleep(1000);
+                Thread.sleep(1000); //buffered image might take time to render
                 display_generated(image, output_image);
                 break;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                raise_error(e.toString());
             }
         }
         current_image = image;
@@ -146,39 +171,23 @@ public class GUI_Builder implements Initializable {
         logo_size.setDisable(false);
     }
 
-    private void set_result(String res) {
-        result_handler.setText(res);
-        result_handler.setTextFill(Color.BLACK);
-        result_handler.setVisible(true);
-    }
-
-    public void raise_error(String e) {
-        result_handler.setText(e);
-        result_handler.setTextFill(Color.RED);
-        result_handler.setVisible(true);
-    }
-    
-    public void raise_error(IllegalArgumentException e) {
-        result_handler.setText(e.toString().split(":")[1]);
-        result_handler.setTextFill(Color.RED);
-        result_handler.setVisible(true);
-    }
-    
-    public static void stop_cam() {
-        if (capture != null && capture.isOpened()) {
-            capture.release();
-        }
-    }
-
     @FXML
     private void cam_toggle(ActionEvent event) { //show opencv cam in output_image (image view)
-        //System.out.println(cam_butt.getText());
         if (cam_butt.getText().equals("Close Camera")) {
             stop_cam();
             cam_butt.setText("Open Camera");
             return;
         }
-        System.loadLibrary(org.opencv.core.Core.NATIVE_LIBRARY_NAME);
+
+        /* boolean[] cam_list = new boolean[10];
+        for (int i = 0; i < 10; i++) {
+            try {
+                capture = new VideoCapture(i);
+                cam_list[i] = true;
+            } catch (Exception e) {
+                break;
+            }
+        } */
 
         capture = new VideoCapture(0); // Open the default webcam
 
@@ -186,25 +195,16 @@ public class GUI_Builder implements Initializable {
             raise_error("Unable to open camera");
             return;
         }
+        if (!capture.read(new Mat())) {
+            raise_error("Camera is opened in another app");
+            return;
+        }
 
         cam_butt.setText("Close Camera");
-        // Create a separate thread for video capture to avoid freezing the UI
         capturing = true;
-        new Thread(this::start_capture).start();
-    }
 
-    private BufferedImage MatToBuff(Mat img) {
-        MatOfByte mob = new MatOfByte();
-        Imgcodecs.imencode(".jpg", img, mob);
-        byte ba[] = mob.toArray();
-
-        BufferedImage bufferedimg;
-        try {
-            bufferedimg = ImageIO.read(new ByteArrayInputStream(ba));
-        } catch (IOException e) { //no img captured
-            return null;
-        }
-        return bufferedimg;
+        // Create a separate thread for video capture to avoid freezing the UI
+        new Thread(this::start_capture).start(); 
     }
 
     private void start_capture() {
@@ -213,8 +213,10 @@ public class GUI_Builder implements Initializable {
             capture.read(frame);
             if (frame.empty()) {
                 stop_cam();
+                capturing = false;
+                return;
             }
-            BufferedImage bufferedimg = MatToBuff(frame);
+            BufferedImage bufferedimg = Read.MatToBuff(frame);
             if (bufferedimg == null) continue;
         
             Platform.runLater(() ->  display_generated(bufferedimg, output_image));
@@ -240,19 +242,11 @@ public class GUI_Builder implements Initializable {
     private String[] process_img(Mat frame) {
         fps = 0;
         String[] result = Read.decode_qr_code(frame);
-        if (result == null) {
-            return null;
-        }
+        if (result == null) return null;
 
         result[1] = dictionary.get(BarcodeFormat.valueOf(result[1]));
         capturing = false;
         return result;
-    }
-
-
-    private void display_generated(BufferedImage image, ImageView location) {
-        Image writable = SwingFXUtils.toFXImage(image, null);
-        location.setImage(writable);      
     }
 
     @FXML
@@ -363,7 +357,6 @@ public class GUI_Builder implements Initializable {
         set_logo();
         remove_button.setDisable(false);
     }
-
     
     @FXML
     private void upload_press(ActionEvent event) throws IOException {
@@ -409,10 +402,9 @@ public class GUI_Builder implements Initializable {
             set_logo();
         });
 
-        logo_size.setOnMouseReleased(event -> {
-            if (current_combined == null) {
-                return;
-            }
+        logo_size.setOnMouseReleased(event -> {  //try to read code when logo size changed
+            if (current_combined == null) return;
+
             String[] result = Read.decode_qr_code(current_combined);
             if (result == null) {
                 raise_error("Code cannot be detected, please try another logo size");
@@ -429,7 +421,7 @@ public class GUI_Builder implements Initializable {
         });
 
     }
-    private final Map<BarcodeFormat,String> dictionary = new LinkedHashMap<BarcodeFormat, String>();
+    private Map<BarcodeFormat,String> dictionary = new LinkedHashMap<BarcodeFormat, String>();
     {
         dictionary.put(BarcodeFormat.QR_CODE, "Qr Code");
         dictionary.put(BarcodeFormat.CODE_39, "Code 39 (Standard Barcode)");

@@ -43,10 +43,7 @@ class Write {
         return hashMap;
     }
 
-    private static BufferedImage color_qr(
-        int width, int height, BitMatrix matrix,
-        Color innerColor, Color outerColor) 
-    {
+    private static BufferedImage color_qr(int width, int height, BitMatrix matrix, Color innerColor, Color outerColor) {
         BufferedImage colored = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
         byte[] data = ((DataBufferByte) colored.getRaster().getDataBuffer()).getData();  
         //apparently writing to databufferbyte faster than set(x,y)
@@ -83,13 +80,51 @@ class Write {
 
     public static int colorToARGB(Color color) { //no fkging clue how it works
         int alpha = (int) (color.getOpacity() * 255) << 24; // Alpha channel
-        int red = (int) (color.getRed() * 255) << 16;       // Red channel
+        int red =   (int) (color.getRed() * 255) << 16;       // Red channel
         int green = (int) (color.getGreen() * 255) << 8;    // Green channel
-        int blue = (int) (color.getBlue() * 255);            // Blue channel
-        return alpha | red | green | blue;                   // Combine channels
+        int blue =  (int) (color.getBlue() * 255);           // Blue channel
+        return alpha | red | green | blue;                  // Combine channels
+    }
+    
+    // Function to create the QR code
+    public static BufferedImage create_temp(String data, int error_lvl, String output_type, Color inner, Color outer) 
+        throws WriterException, IOException  {
+            //save_temp_img(image);
+
+            int height = 500; int width = 500; 
+    
+            Map<EncodeHintType, Object> hashMap = new HashMap<>();
+    
+            BarcodeFormat output_format = dictionary.get(output_type);
+    
+            if (output_format == BarcodeFormat.QR_CODE) {
+                hashMap = qr_formatting(hashMap, error_lvl);
+            } 
+
+            BitMatrix matrix = new MultiFormatWriter().encode(
+                new String(data.getBytes("UTF-8"), "UTF-8"),
+                output_format, width, height, hashMap);
+            
+            BufferedImage  image = color_qr(width,height, matrix, inner, outer);
+                
+            return image;
+        }
+      
+    @SuppressWarnings("unused")
+    private static void save_temp_img(BufferedImage image) throws IOException {
+        // The path where the image will get saved
+        long time = System.currentTimeMillis();
+        String file_name = time + ".png";
+
+        String path = System.getProperty("user.dir");
+        String[] temp = path.split("\\\\");
+        if (temp[temp.length-1].equals("code_builder")) path += "\\src\\main\\resources\\temp_img\\" + file_name;
+        else path += "\\code_builder\\src\\main\\resources\\temp_img\\" + file_name;
+        File file = new File(path);
+        ImageIO.write(image,"PNG",file);
     }
 
-    private static final Map<String,BarcodeFormat> dictionary = new HashMap<>();
+    private static Map<String,BarcodeFormat> dictionary = new HashMap<>();
     static {
         dictionary.put("Qr Code", BarcodeFormat.QR_CODE);
         dictionary.put("Code 39 (Standard Barcode)", BarcodeFormat.CODE_39);
@@ -108,54 +143,6 @@ class Write {
         dictionary.put("MAXICODE (Not supported)", BarcodeFormat.MAXICODE);
         dictionary.put("RSS 14 (Not supported)", BarcodeFormat.RSS_14);
         dictionary.put("RSS Expanded (Not supported)", BarcodeFormat.RSS_EXPANDED);
-
     }
-    
-    // Function to create the QR code
-    private static BufferedImage create(String data, String charset, int error_lvl,
-                                    String output_type, Color inner, Color outer) 
-        throws WriterException, IOException  {
-            
-            int height = 500; int width = 500; 
-    
-            Map<EncodeHintType, Object> hashMap = new HashMap<>();
-    
-            BarcodeFormat output_format = dictionary.get(output_type);
-    
-            if (output_format == BarcodeFormat.QR_CODE) {
-                hashMap = qr_formatting(hashMap, error_lvl);
-            } 
-
-            BitMatrix matrix = new MultiFormatWriter().encode(
-                new String(data.getBytes(charset), charset),
-                output_format, width, height, hashMap);
-            
-            BufferedImage  image = color_qr(width,height, matrix, inner, outer);
-                
-            return image;
-            }
-      
-        // Driver code
-    public static BufferedImage create_temp(String data, int error_lvl, String output_type, Color inner, Color outer) throws WriterException, IOException, IllegalArgumentException {   
-        BufferedImage image = create(data, "UTF-8", error_lvl,  output_type, inner, outer);
-        //save_temp_img(image);
-        
-        return image;
-    }
-
-    @SuppressWarnings("unused")
-    private static void save_temp_img(BufferedImage image) throws IOException {
-        // The path where the image will get saved
-        long time = System.currentTimeMillis();
-        String file_name = time + ".png";
-
-        String path = System.getProperty("user.dir");
-        String[] temp = path.split("\\\\");
-        if (temp[temp.length-1].equals("code_builder")) path += "\\src\\main\\resources\\temp_img\\" + file_name;
-        else path += "\\code_builder\\src\\main\\resources\\temp_img\\" + file_name;
-        File file = new File(path);
-        ImageIO.write(image,"PNG",file);
-    }
-
     
 }
