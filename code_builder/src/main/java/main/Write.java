@@ -48,7 +48,7 @@ class Write {
         byte[] data = ((DataBufferByte) colored.getRaster().getDataBuffer()).getData();  
         //apparently writing to databufferbyte faster than set(x,y)
 
-        if (innerColor == Color.BLACK && outerColor == Color.WHITE) {
+        if (innerColor == Color.BLACK && outerColor == Color.WHITE) { //Normal black and wite
             return MatrixToImageWriter.toBufferedImage(matrix);
         }
 
@@ -80,24 +80,23 @@ class Write {
 
     public static int colorToARGB(Color color) { //no fkging clue how it works
         int alpha = (int) (color.getOpacity() * 255) << 24; // Alpha channel
-        int red =   (int) (color.getRed() * 255) << 16;       // Red channel
-        int green = (int) (color.getGreen() * 255) << 8;    // Green channel
-        int blue =  (int) (color.getBlue() * 255);           // Blue channel
+        int red   = (int) (color.getRed()     * 255) << 16;       // Red channel
+        int green = (int) (color.getGreen()   * 255) << 8;    // Green channel
+        int blue  = (int) (color.getBlue()    * 255);           // Blue channel
         return alpha | red | green | blue;                  // Combine channels
     }
     
     // Function to create the QR code
     public static BufferedImage create_temp(String data, int error_lvl, String output_type, Color inner, Color outer) 
-        throws WriterException, IOException  {
+        
+    throws WriterException, IOException  {
             //save_temp_img(image);
-
             int height = 500; int width = 500; 
     
             Map<EncodeHintType, Object> hashMap = new HashMap<>();
     
             BarcodeFormat output_format = dictionary.get(output_type);
-    
-            if (output_format == BarcodeFormat.QR_CODE) {
+            if (output_format == BarcodeFormat.QR_CODE) { //Qr code have additional error correction
                 hashMap = qr_formatting(hashMap, error_lvl);
             } 
 
@@ -118,8 +117,12 @@ class Write {
 
         String path = System.getProperty("user.dir");
         String[] temp = path.split("\\\\");
-        if (temp[temp.length-1].equals("code_builder")) path += "\\src\\main\\resources\\temp_img\\" + file_name;
-        else path += "\\code_builder\\src\\main\\resources\\temp_img\\" + file_name;
+        if (temp[temp.length-1].equals("code_builder")) {
+            path += "\\src\\main\\resources\\temp_img\\" + file_name;
+        } else {
+            path += "\\code_builder\\src\\main\\resources\\temp_img\\" + file_name;
+        }
+
         File file = new File(path);
         ImageIO.write(image,"PNG",file);
     }

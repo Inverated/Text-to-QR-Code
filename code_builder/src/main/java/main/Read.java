@@ -99,7 +99,7 @@ public class Read {
                 }
 
                 boolean exit=false;
-                double min_len = image.rows(); //for later to cal ratio
+                double min_len = image.rows(); 
                 //lets do meth, dot product to get angle fuk
                 for (int i = 0; i < 4; i++) {
                     double[] A = {points.get(i).x - points.get((i+1)%4).x, points.get(i).y - points.get((i+1)%4).y};
@@ -114,9 +114,10 @@ public class Read {
                         break;
                     }
 
-                    min_len = Math.min(Math.sqrt(A[0]*A[0] + A[1]*A[1]), min_len);
-                    double ratio = (A[0]*A[0] + A[1]*A[1])/(B[0]*B[0] + B[1]*B[1]); //exclude loooong rectangle
-                    if (ratio > 16 || ratio < 0.0625) {
+                    min_len = Math.min(Math.sqrt(A[0]*A[0] + A[1]*A[1]), min_len);//for later to cal ratio
+
+                    double side_ratio = (A[0]*A[0] + A[1]*A[1])/(B[0]*B[0] + B[1]*B[1]); //exclude loooong rectangle
+                    if (side_ratio > 16 || side_ratio < 0.0625) {
                         exit = true;
                         break;
                     }
@@ -129,9 +130,9 @@ public class Read {
                     System.out.println(p.x + " " + p.y);
                 } */
 
-                /* draw(points, annotated, new Scalar(0,255,0));
-                Imgproc.putText(annotated, points.get(0).x+" "+points.get(0).y, points.get(0), 1, 1, new Scalar(255,100,200));
- */
+                //draw(points, annotated, new Scalar(0,255,0));
+                //Imgproc.putText(annotated, points.get(0).x+" "+points.get(0).y, points.get(0), 1, 1, new Scalar(255,100,200));
+ 
                 double cenx = (points.get(0).x + points.get(1).x + points.get(2).x + points.get(3).x) / len;
                 double ceny = (points.get(0).y + points.get(1).y + points.get(2).y + points.get(3).y) / len;
 
@@ -147,9 +148,9 @@ public class Read {
                     p.set(new double[]{scaledX, scaledY});
                 }
 
-                /* draw(points, annotated, new Scalar(255,0,0));
-                Imgcodecs.imwrite(temp_dir+"/annotated.png", annotated);
-                */
+                //draw(points, annotated, new Scalar(255,0,0));
+                //Imgcodecs.imwrite(temp_dir+"/annotated.png", annotated);
+                
                 Mat transformed = transform_image(points, gray);        //make sure image grey to fed into decode
 
                 //Imgcodecs.imwrite(temp_dir + "/Transformed.png", transformed);
@@ -162,9 +163,8 @@ public class Read {
                 } 
             }
         }
-        if (confidence.size() == 0) {
-            return null;
-        } else {
+        if (confidence.size() == 0) return null;
+        else {
             confidence.sort((arr1, arr2) -> arr2[2].compareTo(arr1[2]));
             String[] output = {confidence.get(0)[0], confidence.get(0)[1]};
             confidence = new ArrayList<>(); //Stupid method needing static so need reset manually
@@ -208,19 +208,19 @@ public class Read {
             qrCodeResult = new MultiFormatReader().decode(binaryBitmap, hintMap);
             decoded = qrCodeResult.getText();
             return new String[]{decoded, qrCodeResult.getBarcodeFormat().toString()};
-        } catch (NotFoundException e) {}
+        } catch (NotFoundException e) {/*do nothing*/}
         return null;
     }
 
-    private static BufferedImage MatToBuff(Mat grey_image) {
-        BufferedImage bufferedImage = new BufferedImage(grey_image.cols(), grey_image.rows(), BufferedImage.TYPE_BYTE_GRAY);
+    public static BufferedImage MatToBuff(Mat grey_image) {
+        BufferedImage bufferedImage = new BufferedImage(grey_image.cols(), grey_image.rows(), BufferedImage.TYPE_3BYTE_BGR);
         byte[] data = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
         grey_image.get(0, 0, data);
         return bufferedImage;
     }
 
     private static Mat buffToMat(BufferedImage bufferedImage) {
-        // Must BufferedImage.TYPE_3BYTE_BGR
+        // Must be BufferedImage.TYPE_3BYTE_BGR
         Mat mat = new Mat(bufferedImage.getHeight(), bufferedImage.getWidth(), CvType.CV_8UC3);
 
         byte[] data = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
@@ -238,7 +238,7 @@ public class Read {
         double height = Math.sqrt(Math.pow(topRight.x-bottomRight.x, 2) + Math.pow(topRight.y-bottomRight.y, 2));
 
         if (width>height) height = width;
-        else width = height;
+        else width = height; //make code square shape
 
         Point outputTopLeft = new Point(0, 0);
         Point outputTopRight = new Point(width*1.1, 0);

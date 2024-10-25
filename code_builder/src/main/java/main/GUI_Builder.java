@@ -36,7 +36,9 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
@@ -55,6 +57,7 @@ public class GUI_Builder implements Initializable {
 
     @FXML private Label download_status;
     @FXML private Label result_handler;
+    @FXML private Label cam_result;
 
     @FXML private Button downloadButton;
     @FXML private Button uploadButton;
@@ -71,6 +74,8 @@ public class GUI_Builder implements Initializable {
     @FXML private ColorPicker inner_color;
     @FXML private ColorPicker outer_color;
 
+    @FXML private ContextMenu cam_click; 
+
     @FXML private ImageView output_image;
     @FXML private ImageView logo_image;
     @FXML private StackPane output_pane;
@@ -80,33 +85,62 @@ public class GUI_Builder implements Initializable {
     private BufferedImage current_logo = null;
     private BufferedImage current_combined = null;
 
+    PauseTransition pause = new PauseTransition(Duration.seconds(3));
+
     private static VideoCapture capture = null;
+    private static VideoCapture test_capture = null;
+
     private int fps = 0;
     private final int fps_max = 10;
-    private boolean capturing = false;
+    private static boolean capturing = false;
     private boolean download_warning = false;
+    private static int selected_cam = 0; //default val 0
+    private static Thread cam_thread, process_thread;
 
     private void set_result(String res) {
-        result_handler.setText(res);
-        result_handler.setTextFill(Color.BLACK);
-        result_handler.setVisible(true);
+        Platform.runLater(()-> {
+            result_handler.setText(res);
+            result_handler.setTextFill(Color.BLACK);
+            result_handler.setVisible(true);
+        });
     }
 
     public void raise_error(String e) {
-        result_handler.setText(e);
-        result_handler.setTextFill(Color.RED);
-        result_handler.setVisible(true);
+        Platform.runLater(() -> {
+            result_handler.setText(e);
+            result_handler.setTextFill(Color.RED);
+            result_handler.setVisible(true);
+            pause.setOnFinished(EventHandler -> {
+                result_handler.setVisible(false);
+            });
+            pause.play();
+        });
     }
     
     public void raise_error(IllegalArgumentException e) {
-        result_handler.setText(e.toString().split(":")[1]);
-        result_handler.setTextFill(Color.RED);
-        result_handler.setVisible(true);
+        Platform.runLater(() -> {
+            result_handler.setText(e.toString().split(":")[1]);
+            result_handler.setTextFill(Color.RED);
+            result_handler.setVisible(true);
+            pause.setOnFinished(EventHandler -> {
+                result_handler.setVisible(false);
+            });
+            pause.play();
+        });
     }
     
     public static void stop_cam() {
-        if (capture != null && capture.isOpened()) {
+        if (capture != null) {
             capture.release();
+        }
+        capturing = false;
+        if (process_thread != null) process_thread.interrupt();
+        if (cam_thread != null) cam_thread.interrupt();
+    }
+
+    public static void stop_cam(VideoCapture test_capture) {
+        if (test_capture != null) {
+            test_capture.release();
         }
     }
 
@@ -143,7 +177,7 @@ public class GUI_Builder implements Initializable {
         try {
             image = Write.create_temp(user_input, error_lvl, output_type, inner_color.getValue(), outer_color.getValue());
         } catch (WriterException e) {
-            set_result("Invalid/Excess input for type of code selected.");
+            set_result("Invalid input for type of code selected.");
             return;
         } catch (IOException e) {
             e.printStackTrace();
@@ -158,7 +192,6 @@ public class GUI_Builder implements Initializable {
                 display_generated(image, output_image);
                 break;
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
                 raise_error(e.toString());
             }
         }
@@ -171,26 +204,65 @@ public class GUI_Builder implements Initializable {
         logo_size.setDisable(false);
     }
 
+    private void choose_cam() {
+        cam_click.getItems().clear();
+        boolean found = false;
+
+        for (int i = 0; i < 10; i++) {
+            if (i == selected_cam) {
+                cam_click.getItems().add(new MenuItem("Camera " + (i+1)));
+                continue;
+            }
+            try {
+                test_capture = new VideoCapture(i);
+                if (!test_capture.read(new Mat())) {
+                    break;
+                }
+                found = true;
+                final int chosen = i;
+                MenuItem item = new MenuItem("Camera " + (i+1));
+
+                item.setOnAction(e -> {
+                    selected_cam = chosen;  
+                    cam_result.setText("Camera " + (selected_cam+1) + " selected");
+                    if (capturing) {
+                        stop_cam();
+                        process_thread.interrupt();
+                        cam_thread.interrupt();
+                        run_cam();
+                    }
+                });
+                cam_click.getItems().add(item);
+
+            } catch (Exception e) {
+                continue;
+            }
+        }
+        stop_cam(test_capture);
+        if (found) {
+            cam_result.setText("Camera " + (selected_cam+1) + " selected");
+        } else {
+            cam_result.setText("No Camera Detected");
+        }
+    }
+
     @FXML
     private void cam_toggle(ActionEvent event) { //show opencv cam in output_image (image view)
+        set_result("");
         if (cam_butt.getText().equals("Close Camera")) {
             stop_cam();
+            process_thread.interrupt();
+            cam_thread.interrupt();
             cam_butt.setText("Open Camera");
             return;
         }
+        run_cam();
+    }
 
-        /* boolean[] cam_list = new boolean[10];
-        for (int i = 0; i < 10; i++) {
-            try {
-                capture = new VideoCapture(i);
-                cam_list[i] = true;
-            } catch (Exception e) {
-                break;
-            }
-        } */
-
-        capture = new VideoCapture(0); // Open the default webcam
-
+    private void run_cam() {
+        capture = new VideoCapture(selected_cam); 
+        cam_result.setText("Camera " + (selected_cam+1) + " selected");
+        
         if (!capture.isOpened()) {
             raise_error("Unable to open camera");
             return;
@@ -204,39 +276,54 @@ public class GUI_Builder implements Initializable {
         capturing = true;
 
         // Create a separate thread for video capture to avoid freezing the UI
-        new Thread(this::start_capture).start(); 
+        cam_thread = new Thread(this::start_capture);
+        cam_thread.start(); 
     }
 
     private void start_capture() {
         Mat frame = new Mat();
-        while (capturing && capture.isOpened()){
-            capture.read(frame);
-            if (frame.empty()) {
+        while (capturing) {
+            try {
+                if (!capture.read(frame)) {
+                    raise_error("Camera " + (selected_cam+1) + " is not avaliable");
+                    continue;
+                }
+            } catch (Exception e) {
                 stop_cam();
-                capturing = false;
+                process_thread.interrupt();
+                cam_thread.interrupt();
                 return;
             }
+
+            if (frame.width() < 1) {
+                continue;
+            }
             BufferedImage bufferedimg = Read.MatToBuff(frame);
-            if (bufferedimg == null) continue;
         
-            Platform.runLater(() ->  display_generated(bufferedimg, output_image));
+            Platform.runLater(() -> display_generated(bufferedimg, output_image)); //Show video captured by opencv
             fps++;
 
             if (fps == fps_max) {
-                new Thread(() -> {
-                    String[] res = process_img(frame);
-                    if (res != null) {
-                        Platform.runLater(() -> {       //bring out interaction with fx to run in platform.runlater,  thread cannot interact directly
-                            set_result("Code found. Type: " + res[1]);
-                            output_choice.setValue(res[1]);
-                            generatetext.setText(res[0]); 
-                            cam_butt.setText("Open Camera");
-                        });
+                process_thread = new Thread(() -> { //new thread to process img while still showing video
+                    if (capturing) {
+                        String[] result = process_img(frame);
+                        if (result != null) {
+                            Platform.runLater(() -> {       //bring out interaction with fx to run in platform.runlater,  thread cannot interact directly
+                                generatetext.setText(result[0]); 
+                                set_result("Code found. Type: " + result[1]);
+                                output_choice.setValue(result[1]);
+                                cam_butt.setText("Open Camera");
+                            });
+                        }
                     }
-                }).start();
+                });
+                process_thread.start();
             }
         }
         stop_cam();
+        process_thread.interrupt();
+        cam_thread.interrupt();
+        Platform.runLater(() -> cam_butt.setText("Open Camera"));
     }
 
     private String[] process_img(Mat frame) {
@@ -245,13 +332,15 @@ public class GUI_Builder implements Initializable {
         if (result == null) return null;
 
         result[1] = dictionary.get(BarcodeFormat.valueOf(result[1]));
-        capturing = false;
+        stop_cam();
+        process_thread.interrupt();
+        cam_thread.interrupt();
+
         return result;
     }
 
     @FXML
     private void download_press(ActionEvent event) throws IOException {
-        PauseTransition pause = new PauseTransition(Duration.seconds(3));
         if (current_image == null) {
             raise_error("Please generate an image before downloading");
             return;
@@ -283,13 +372,16 @@ public class GUI_Builder implements Initializable {
         File filetosave = choose_file(1); 
         if (filetosave == null) return;    
         
-        if (current_combined != null) {current_image = current_combined;}
+        if (current_combined != null) {
+            current_image = current_combined;
+        }
         ImageIO.write(current_image,"PNG",filetosave);
 
         result_handler.setVisible(false);
         set_result("Image saved at "+filetosave.getAbsolutePath());
         download_status.setVisible(true);
 
+        pause.setDuration(Duration.seconds(3));
         pause.setOnFinished(EventHandler -> {
             download_status.setVisible(false);
         });
@@ -312,7 +404,6 @@ public class GUI_Builder implements Initializable {
         logo_image.setImage(null);
         display_generated(current_image, output_image);
         remove_button.setDisable(true);
-
     }
 
     private void set_logo() {
@@ -349,9 +440,9 @@ public class GUI_Builder implements Initializable {
     @FXML
     private void upload_logo(ActionEvent event) throws FileNotFoundException, IOException {
         File file = choose_file(2);
-        if (file == null) {return;} 
+        if (file == null) return;
         BufferedImage logo = ImageIO.read(new FileInputStream(file));
-        if (logo == null) {return;}
+        if (logo == null) return;
         display_generated(logo,logo_image);
         current_logo = logo;
         set_logo();
@@ -396,6 +487,16 @@ public class GUI_Builder implements Initializable {
         output_image.fitWidthProperty().bind(output_pane.widthProperty());
         logo_image.fitHeightProperty().bind(logo_pane.heightProperty());
         logo_image.fitWidthProperty().bind(logo_pane.widthProperty());
+
+
+        choose_cam();
+        cam_butt.setOnMousePressed(event -> {
+            if (event.isSecondaryButtonDown()) {
+                choose_cam();
+                cam_click.show(cam_butt, event.getScreenX(), event.getScreenY());
+            }
+
+        });
 
         logo_size.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (current_logo == null) return;

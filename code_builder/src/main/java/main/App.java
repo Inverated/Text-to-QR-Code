@@ -17,6 +17,8 @@ import java.io.File;
 public class App extends Application {
     static {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME); // Load the OpenCV native library
+        System.setProperty("org.opencv.debug", "true");  // Enable debug logging
+
     }
     private static Scene scene;
     
@@ -27,7 +29,6 @@ public class App extends Application {
         
         File[] folder = new File(dir).listFiles();
         for (File file : folder) {
-            //System.out.println(file.getName());
             file.delete();
         }
 
@@ -43,12 +44,7 @@ public class App extends Application {
             Platform.exit();
         });
 
-
         stage.show();  
-    }
-
-    static void setRoot(String fxml) throws IOException {
-        scene.setRoot(loadFXML(fxml));
     }
 
     private static Parent loadFXML(String fxml) throws IOException {
