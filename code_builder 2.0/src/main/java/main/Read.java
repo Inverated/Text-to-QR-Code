@@ -31,7 +31,7 @@ public class Read {
     private static ArrayList<String[]> confidence = new ArrayList<>();
 
     //private final static String[] split_dir = System.getProperty("user.dir").split("\\\\"); 
-    //private final static String temp_dir = System.getProperty("user.dir") + (split_dir[split_dir.length-1].equals("code_builder") ? "\\src\\main\\resources\\temp_img" : "\\code_builder\\src\\main\\resources\\temp_img");
+    //private final static String temp_dir = System.getProperty("user.dir") + (split_dir[split_dir.length-1].equals("code_builder 2.0") ? "\\src\\main\\resources\\temp_img" : "\\code_builder 2.0\\src\\main\\resources\\temp_img");
 
 
     public static String[] decode_qr_code(String path) {

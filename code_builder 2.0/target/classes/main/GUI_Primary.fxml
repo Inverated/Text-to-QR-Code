@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane fx:id="main_pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="480.0" minWidth="600.0" prefHeight="480.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.GUI_Builder">
+   <children>
+      <SplitPane dividerPositions="0.1" orientation="VERTICAL" prefHeight="480.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <items>
+          <AnchorPane minHeight="45.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0" SplitPane.resizableWithParent="false">
+               <children>
+                  <TextArea id="generatetext" fx:id="generatetext" minHeight="45.0" prefHeight="45.0" prefWidth="507.0" wrapText="true" AnchorPane.bottomAnchor="-0.0" AnchorPane.leftAnchor="91.0" AnchorPane.rightAnchor="2.5" AnchorPane.topAnchor="0.0">
+                     <font>
+                        <Font size="12.0" />
+                     </font>
+                  </TextArea>
+                  <Text layoutX="14.0" layoutY="27.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Enter Text:" wrappingWidth="67.8" AnchorPane.bottomAnchor="13.486328125" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="515.5333333333334" AnchorPane.topAnchor="11.892578125">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Text>
+               </children>
+            </AnchorPane>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+               <children>
+                  <SplitPane dividerPositions="0.4" prefHeight="445.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <items>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" SplitPane.resizableWithParent="false">
+                           <children>
+                              <Text layoutX="13.0" layoutY="21.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Type:">
+                                 <font>
+                                    <Font size="14.0" />
+                                 </font>
+                              </Text>
+                              <Text layoutX="14.0" layoutY="59.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Color:">
+                                 <font>
+                                    <Font size="14.0" />
+                                 </font>
+                              </Text>
+                              <ComboBox id="output_choice" fx:id="output_choice" layoutX="72.0" layoutY="4.0" onAction="#get_type" prefWidth="150.0" />
+                              <ColorPicker id="outer_color" fx:id="outer_color" layoutX="125.0" layoutY="40.0" prefHeight="27.0" prefWidth="44.0" />
+                              <ColorPicker id="inner_color" fx:id="inner_color" layoutX="72.0" layoutY="40.0" prefHeight="27.0" prefWidth="44.0">
+                                 <value>
+                                    <Color />
+                                 </value>
+                              </ColorPicker>
+                              <AnchorPane fx:id="qr_option" layoutY="76.0" prefHeight="353.0" prefWidth="241.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="76.0">
+                                 <children>
+                                    <Text layoutX="14.0" layoutY="32.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Error Correction: ">
+                                       <font>
+                                          <Font size="14.0" />
+                                       </font>
+                                    </Text>
+                                    <Text layoutX="16.0" layoutY="65.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Logo:">
+                                       <font>
+                                          <Font size="14.0" />
+                                       </font>
+                                    </Text>
+                                    <Button id="add_logo" fx:id="upload_logo" disable="true" layoutX="118.0" layoutY="47.0" mnemonicParsing="false" onAction="#upload_logo" prefHeight="27.0" prefWidth="105.0" text="Upload Logo" />
+                                    <Separator layoutX="41.0" layoutY="2.0" prefWidth="200.0" />
+                                    <ComboBox id="correction_choice" fx:id="correction_choice" layoutX="118.0" layoutY="12.0" prefHeight="27.0" prefWidth="105.0" />
+                                    <Text layoutX="17.0" layoutY="100.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Size:">
+                                       <font>
+                                          <Font size="14.0" />
+                                       </font>
+                                    </Text>
+                                    <Slider id="logo_size" fx:id="logo_size" disable="true" layoutX="53.0" layoutY="87.0" prefHeight="15.0" prefWidth="176.0" value="100.0" />
+                                    <StackPane fx:id="logo_pane" layoutX="29.0" layoutY="120.0" prefHeight="180.0" prefWidth="180.0" AnchorPane.leftAnchor="28.666666666666686" AnchorPane.rightAnchor="32.33333333333334" AnchorPane.topAnchor="120.0">
+                                       <children>
+                                          <ImageView id="logo_image" fx:id="logo_image" fitHeight="180.0" fitWidth="180.0" layoutX="20.0" layoutY="120.0" pickOnBounds="true" preserveRatio="true" />
+                                       </children>
+                                    </StackPane>
+                                    <StackPane layoutX="29.0" layoutY="120.0" prefHeight="180.0" prefWidth="180.0" style="-fx-border-color: black;" AnchorPane.leftAnchor="28.666666666666686" AnchorPane.rightAnchor="32.33333333333334" AnchorPane.topAnchor="120.0" />
+                                    <Button id="download_butt" fx:id="remove_button" disable="true" layoutX="73.0" layoutY="305.0" mnemonicParsing="false" onAction="#remove_logo" text="Remove Logo" />
+                                 </children>
+                              </AnchorPane>
+                           </children>
+                        </AnchorPane>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="370.0" prefWidth="309.0" SplitPane.resizableWithParent="false">
+                           <children>
+                              <Button id="download_butt" fx:id="downloadButton" layoutX="40.0" layoutY="374.0" mnemonicParsing="false" onAction="#download_press" text="Download" AnchorPane.bottomAnchor="25.19999999999999" AnchorPane.leftAnchor="40.0" />
+                              <Button id="upload_button" fx:id="uploadButton" layoutX="149.0" layoutY="374.0" mnemonicParsing="false" onAction="#upload_press" text="Upload" AnchorPane.bottomAnchor="25.20000000000001" AnchorPane.leftAnchor="149.0" AnchorPane.rightAnchor="151.2" />
+                              <Button id="camera" fx:id="cam_butt" layoutX="234.0" layoutY="374.0" mnemonicParsing="false" onAction="#cam_toggle" text="Open Camera" AnchorPane.bottomAnchor="25.20000000000001" AnchorPane.rightAnchor="31.599999999999994">
+                                 <contextMenu>
+                                    <ContextMenu fx:id="cam_click">
+                                      <items>
+                                        <MenuItem mnemonicParsing="false" text="Unspecified Action" />
+                                      </items>
+                                    </ContextMenu>
+                                 </contextMenu></Button>
+                              <StackPane layoutX="27.0" layoutY="41.0" prefHeight="300.0" prefWidth="300.0" AnchorPane.bottomAnchor="76.33333333333331" AnchorPane.leftAnchor="26.666666666666686" AnchorPane.rightAnchor="27.666666666666686" AnchorPane.topAnchor="41.333333333333314">
+                                 <children>
+                                    <ImageView id="output_image" fx:id="output_image" fitHeight="300.0" fitWidth="300.0" nodeOrientation="INHERIT" pickOnBounds="true" preserveRatio="true" />
+                                 </children>
+                              </StackPane>
+                              <Button id="generate_button" fx:id="generate_button" layoutX="77.0" layoutY="4.0" mnemonicParsing="false" onAction="#onGeneratePush" prefHeight="27.0" prefWidth="200.0" text="Generate" AnchorPane.leftAnchor="76.0" AnchorPane.rightAnchor="76.0" />
+                              <StackPane fx:id="output_pane" layoutX="27.0" layoutY="41.0" prefHeight="300.0" prefWidth="300.0" style="-fx-border-color: black;" AnchorPane.bottomAnchor="76.0" AnchorPane.leftAnchor="26.666666666666686" AnchorPane.rightAnchor="27.666666666666686" AnchorPane.topAnchor="41.0" />
+                              <Label id="completion_status" fx:id="download_status" layoutX="18.0" layoutY="402.0" text="Download Completed" visible="false" AnchorPane.bottomAnchor="5.20000000000001" AnchorPane.leftAnchor="16.0" />
+                              <Label fx:id="result_handler" alignment="CENTER" contentDisplay="CENTER" layoutX="27.0" layoutY="346.0" prefHeight="19.0" prefWidth="300.0" visible="false" AnchorPane.bottomAnchor="56.66666666666667" AnchorPane.leftAnchor="26.666666666666668" AnchorPane.rightAnchor="28.0" />
+                              <Label id="completion_status" fx:id="cam_result" layoutX="223.0" layoutY="401.0" text="No Camera Detected" textAlignment="CENTER" AnchorPane.bottomAnchor="6.20000000000001" AnchorPane.rightAnchor="20.999999999999986" />
+                           </children>
+                        </AnchorPane>
+                    </items>
+                  </SplitPane>
+               </children>
+            </AnchorPane>
+        </items>
+      </SplitPane>
+   </children>
+</AnchorPane>

@@ -25,7 +25,7 @@ public class App extends Application {
     @Override
     public void start(Stage stage) throws IOException {     
         final String[] split_dir = System.getProperty("user.dir").split("\\\\"); 
-        final String dir = System.getProperty("user.dir") + (split_dir[split_dir.length-1].equals("code_builder") ? "\\src\\main\\resources\\temp_img" : "\\code_builder\\src\\main\\resources\\temp_img");
+        final String dir = System.getProperty("user.dir") + (split_dir[split_dir.length-1].equals("code_builder 2.0") ? "\\src\\main\\resources\\temp_img" : "\\code_builder 2.0\\src\\main\\resources\\temp_img");
         
         File[] folder = new File(dir).listFiles();
         for (File file : folder) {

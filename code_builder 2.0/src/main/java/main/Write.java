@@ -117,10 +117,10 @@ class Write {
 
         String path = System.getProperty("user.dir");
         String[] temp = path.split("\\\\");
-        if (temp[temp.length-1].equals("code_builder")) {
+        if (temp[temp.length-1].equals("code_builder 2.0")) {
             path += "\\src\\main\\resources\\temp_img\\" + file_name;
         } else {
-            path += "\\code_builder\\src\\main\\resources\\temp_img\\" + file_name;
+            path += "\\code_builder 2.0\\src\\main\\resources\\temp_img\\" + file_name;
         }
 
         File file = new File(path);
