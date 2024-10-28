@@ -17,7 +17,6 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
-import org.opencv.objdetect.QRCodeDetector;
 
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
@@ -54,7 +53,7 @@ public class Read {
         Imgproc.cvtColor(image, gray, Imgproc.COLOR_BGR2GRAY);
 
         int border = 15; //border required for barcode that extend to edges
-        Core.copyMakeBorder(gray, gray, border, border, border, border, Core.BORDER_CONSTANT, new  Scalar(255, 255, 255));
+        Core.copyMakeBorder(gray, gray, border, border, border, border, Core.BORDER_CONSTANT, new  Scalar(0, 0, 0));
 
         //Imgcodecs.imwrite(temp_dir+"/gray.png", gray);
 
@@ -187,12 +186,7 @@ public class Read {
     }
 
     private static String[] decode(Mat image) {
-        QRCodeDetector qrdetector = new QRCodeDetector();
-        String decoded = qrdetector.detectAndDecode(image);
-        if (!decoded.isEmpty()) {
-            return new String[]{decoded, "QR_CODE"};
-        }; 
-
+        String decoded;
         Map<DecodeHintType, Boolean> hintMap = new HashMap<>();
         hintMap.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
 

@@ -42,6 +42,7 @@ public class App extends Application {
             GUI_Builder.stop_cam(); 
             stage.close();
             Platform.exit();
+            event.consume();
         });
 
         stage.show();  

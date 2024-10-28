@@ -110,7 +110,7 @@ public class GUI_Builder implements Initializable {
             result_handler.setText(e);
             result_handler.setTextFill(Color.RED);
             result_handler.setVisible(true);
-            pause.setOnFinished(EventHandler -> {
+            pause.setOnFinished(_ -> {
                 result_handler.setVisible(false);
             });
             pause.play();
@@ -122,13 +122,14 @@ public class GUI_Builder implements Initializable {
             result_handler.setText(e.toString().split(":")[1]);
             result_handler.setTextFill(Color.RED);
             result_handler.setVisible(true);
-            pause.setOnFinished(EventHandler -> {
+            pause.setOnFinished(_ -> {
                 result_handler.setVisible(false);
             });
             pause.play();
         });
     }
-    
+     
+
     public static void stop_cam() {
         if (capture != null) {
             capture.release();
@@ -165,6 +166,9 @@ public class GUI_Builder implements Initializable {
 
     @FXML
     private void onGeneratePush(ActionEvent event) {
+        capturing = false;
+        stop_cam();
+        cam_butt.setText("Open Camera");
         String user_input = generatetext.getText();
         String output_type = output_choice.getValue();
         result_handler.setVisible(false);
@@ -222,7 +226,7 @@ public class GUI_Builder implements Initializable {
                 final int chosen = i;
                 MenuItem item = new MenuItem("Camera " + (i+1));
 
-                item.setOnAction(e -> {
+                item.setOnAction(event -> {
                     selected_cam = chosen;  
                     cam_result.setText("Camera " + (selected_cam+1) + " selected");
                     if (capturing) {
@@ -231,6 +235,7 @@ public class GUI_Builder implements Initializable {
                         cam_thread.interrupt();
                         run_cam();
                     }
+                    event.consume();
                 });
                 cam_click.getItems().add(item);
 
@@ -285,7 +290,6 @@ public class GUI_Builder implements Initializable {
         while (capturing) {
             try {
                 if (!capture.read(frame)) {
-                    raise_error("Camera " + (selected_cam+1) + " is not avaliable");
                     continue;
                 }
             } catch (Exception e) {
@@ -315,6 +319,7 @@ public class GUI_Builder implements Initializable {
                                 cam_butt.setText("Open Camera");
                             });
                         }
+                        process_thread.interrupt();
                     }
                 });
                 process_thread.start();
@@ -382,7 +387,7 @@ public class GUI_Builder implements Initializable {
         download_status.setVisible(true);
 
         pause.setDuration(Duration.seconds(3));
-        pause.setOnFinished(EventHandler -> {
+        pause.setOnFinished(_ -> {
             download_status.setVisible(false);
         });
         pause.play();
@@ -451,6 +456,9 @@ public class GUI_Builder implements Initializable {
     
     @FXML
     private void upload_press(ActionEvent event) throws IOException {
+        capturing = false;
+        stop_cam();
+        cam_butt.setText("Open Camera");
         result_handler.setVisible(false);
         File file = choose_file(2);
         if (file == null) return; 
@@ -498,7 +506,7 @@ public class GUI_Builder implements Initializable {
 
         });
 
-        logo_size.valueProperty().addListener((observable, oldValue, newValue) -> {
+        logo_size.valueProperty().addListener(_ -> {
             if (current_logo == null) return;
             set_logo();
         });
@@ -519,6 +527,7 @@ public class GUI_Builder implements Initializable {
                     set_result("Code can be detected with logo. It is safe to download.");
                 }     
             }
+            event.consume();
         });
 
     }
