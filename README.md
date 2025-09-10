@@ -3,6 +3,8 @@ Convert any text to scannable codes without 3rd party redirect.
 Using OpenCV to process image and Zxing library to code and decode.
 Compilled using maven.
 
+Note: The code is done very badly before I knew of the concept of OOP. Might return to redo 
+
 # How to encode
 1. Run App.java / clone and run ```mvn javafx:run ```
 2. Fill up value to encode
