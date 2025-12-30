@@ -80,6 +80,7 @@
                     <mainClass>main.App</mainClass> <!-- Replace with your main class -->
                 </configuration>
             </plugin>
+            
             <!-- <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -101,5 +102,10 @@
                 </executions>
             </plugin> -->
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
     </build>
 </project>

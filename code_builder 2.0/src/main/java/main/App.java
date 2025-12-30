@@ -1,22 +1,19 @@
 package main;
 
+import java.io.File;
+import java.io.IOException;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
-
-import java.io.IOException;
-
-import org.opencv.core.Core;
-
-import java.io.File;
 
 
 public class App extends Application {
     static {
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME); // Load the OpenCV native library
+        System.load("C:\\Program Files\\Java\\opencv\\build\\java\\x64\\opencv_java490.dll");
         System.setProperty("org.opencv.debug", "true");  // Enable debug logging
 
     }
@@ -28,11 +25,13 @@ public class App extends Application {
         final String dir = System.getProperty("user.dir") + (split_dir[split_dir.length-1].equals("code_builder 2.0") ? "\\src\\main\\resources\\temp_img" : "\\code_builder 2.0\\src\\main\\resources\\temp_img");
         
         File[] folder = new File(dir).listFiles();
-        for (File file : folder) {
-            file.delete();
+        if (folder != null) {
+            for (File file : folder) {
+                file.delete();
+            }
         }
 
-        scene = new Scene(loadFXML("Gui_Primary"), 650, 500);
+        scene = new Scene(loadFXML("/Gui_Primary"), 650, 500);
         stage.setMinHeight(500);
         stage.setMinWidth(650);
         stage.setTitle("Scannable Code Generator");
@@ -48,7 +47,7 @@ public class App extends Application {
         stage.show();  
     }
 
-    private static Parent loadFXML(String fxml) throws IOException {
+    private static AnchorPane loadFXML(String fxml) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
         return fxmlLoader.load();
     }
