@@ -1,4 +1,4 @@
-module main {
+module qr_builder {
     requires transitive javafx.controls;
     requires javafx.fxml;
     requires javafx.graphics;
@@ -9,6 +9,6 @@ module main {
     requires transitive org.bytedeco.opencv;
     requires org.bytedeco.javacv;
 
-    opens main to javafx.fxml;
-    exports main;
+    opens qr_builder to javafx.fxml;
+    exports qr_builder;
 }

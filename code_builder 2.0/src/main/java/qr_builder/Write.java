@@ -1,4 +1,4 @@
-package main;
+package qr_builder;
 
 // Java code to generate QR code
 

@@ -5,7 +5,7 @@ Code can only run if .fxml and the controller.java implements the onAction, cann
 Fuck
 */
 
-package main;
+package qr_builder;
 
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
@@ -153,7 +153,7 @@ public class GUI_Builder implements Initializable {
     @FXML
     private void get_type(ActionEvent event) {
         String output_type = output_choice.getValue();
-        if (output_type == "Qr Code") {
+        if ("Qr Code".equals(output_type)) {
             qr_option.setVisible(true);
         } else {
             current_logo = null;
@@ -240,7 +240,6 @@ public class GUI_Builder implements Initializable {
                 cam_click.getItems().add(item);
 
             } catch (Exception e) {
-                continue;
             }
         }
         stop_cam(test_capture);

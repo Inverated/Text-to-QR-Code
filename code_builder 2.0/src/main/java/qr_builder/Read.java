@@ -1,4 +1,4 @@
-package main;
+package qr_builder;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;

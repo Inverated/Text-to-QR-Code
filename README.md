@@ -5,6 +5,11 @@ Compilled using maven.
 
 Note: The code is done very badly before I knew of the concept of OOP. Might return to redo 
 
+# Required Packages
+1. JavaFx
+2. OpenCV
+*Add bin and lib folders to environment path
+
 # How to encode
 1. Run App.java / clone and run ```mvn javafx:run ```
 2. Fill up value to encode
@@ -32,7 +37,7 @@ Note: The code is done very badly before I knew of the concept of OOP. Might ret
 
 ## Future Plans (Very far in future. Need catch up in school work)
 1. Shortcut to generate unique codes for wifi passowords etc.
-2. Make an executable (no idea how, nothing works, even when file made its ridiculiously big and does not work)
+2. ~~Make an executable~~ (no idea how, nothing works, even when file made its ridiculiously big and does not work) (Still does not work. gave up)
 3. ~~Get OpenCV to work~~
 4. ~~Add a way to use camera to scanning~~
 5. Maybe try making an android app

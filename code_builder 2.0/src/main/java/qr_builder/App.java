@@ -1,7 +1,9 @@
-package main;
+package qr_builder;
 
 import java.io.File;
 import java.io.IOException;
+
+import org.opencv.core.Core;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -10,19 +12,20 @@ import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
-
 public class App extends Application {
     static {
-        System.load("C:\\Program Files\\Java\\opencv\\build\\java\\x64\\opencv_java490.dll");
-        System.setProperty("org.opencv.debug", "true");  // Enable debug logging
-
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     }
     private static Scene scene;
     
     @Override
     public void start(Stage stage) throws IOException {     
+        // Clean temp directory
         final String[] split_dir = System.getProperty("user.dir").split("\\\\"); 
-        final String dir = System.getProperty("user.dir") + (split_dir[split_dir.length-1].equals("code_builder 2.0") ? "\\src\\main\\resources\\temp_img" : "\\code_builder 2.0\\src\\main\\resources\\temp_img");
+        final String dir = System.getProperty("user.dir") + 
+            (split_dir[split_dir.length-1].equals("code_builder 2.0") ? 
+             "\\src\\main\\resources\\temp_img" : 
+             "\\code_builder 2.0\\src\\main\\resources\\temp_img");
         
         File[] folder = new File(dir).listFiles();
         if (folder != null) {
@@ -31,7 +34,10 @@ public class App extends Application {
             }
         }
 
-        scene = new Scene(loadFXML("/Gui_Primary"), 650, 500);
+        // FIXED: Match case of filename
+        scene = new Scene(loadFXML("/gui_primary"), 650, 500); // if renamed to lowercase
+        // OR: scene = new Scene(loadFXML("/GUI_Primary"), 650, 500); // if keeping uppercase
+        
         stage.setMinHeight(500);
         stage.setMinWidth(650);
         stage.setTitle("Scannable Code Generator");
