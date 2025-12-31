@@ -13,7 +13,7 @@ Note: The code is done very badly before I knew of the concept of OOP. Might ret
 # Required Packages
 1. JavaFx
 2. OpenCV
-*Add bin and lib folders to environment path
+*Add bin and lib folders to environment path*
 
 # How to encode
 1. Run App.java / clone and run ```mvn javafx:run ```
