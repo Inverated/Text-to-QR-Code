@@ -13,6 +13,7 @@ Note: The code is done very badly before I knew of the concept of OOP. Might ret
 # Required Packages
 1. JavaFx
 2. OpenCV
+
 *Add bin and lib folders to environment path*
 
 # How to encode
@@ -22,6 +23,7 @@ Note: The code is done very badly before I knew of the concept of OOP. Might ret
 4. Customise color (Add logo for QR Code)
 5. Generate the code
 6. Download with download button
+
 *Before downloading will scan the qr code to see if it is still scannable after the addition of logo*
 
 # How to decode
