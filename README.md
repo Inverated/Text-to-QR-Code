@@ -1,9 +1,14 @@
 # Text to Scannable Code
-Convert any text to scannable codes without 3rd party redirect.
+All in one text to scannable codes (QR, barcode, etc) generator without 3rd party redirect.
 Using OpenCV to process image and Zxing library to code and decode.
 Compilled using maven.
 
 Note: The code is done very badly before I knew of the concept of OOP. Might return to redo 
+
+# Features
+![alt text](resources/image.png)
+![alt text](resources/image2.png)
+![alt text](resources/image3.png)
 
 # Required Packages
 1. JavaFx
